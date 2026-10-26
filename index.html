@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>モビロー販売管理システム - 株式会社ベルアビエ</title>
+    <title>manero - 株式会社ベルアビエ</title>
     <style>
         :root {
             --bg-color: #f1f5f9;
@@ -18,7 +18,7 @@
             padding: 10px;
         }
 
-        /* 起動時スプラッシュ画面 (1.5秒・白黒無骨ゴシック・スワイプ隠しゲーム対応) */
+        /* 起動時スプラッシュ画面 (1.5秒・シンプル) */
         #splash-screen {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
@@ -36,20 +36,10 @@
         .splash-sub { 
             font-size: 1rem; margin-top: 15px; font-weight: bold; letter-spacing: 1px;
         }
-        .splash-hint {
-            font-size: 0.75rem; margin-top: 30px; color: #64748b;
-        }
         @keyframes fadeOut { 
             0% { opacity: 1; visibility: visible; } 
             100% { opacity: 0; visibility: hidden; } 
         }
-
-        /* 隠し暇つぶしゲーム（ブロック崩し）モーダル */
-        #hiddenGameModal {
-            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0,0,0,0.85); z-index: 20000; justify-content: center; align-items: center; flex-direction: column; color: white;
-        }
-        #gameCanvas { background: #000; border: 2px solid #fff; box-shadow: 0 0 20px rgba(255,255,255,0.2); }
 
         .container { max-width: 1200px; margin: 0 auto; }
         
@@ -105,10 +95,10 @@
             font-size: 0.85rem; font-weight: bold; color: #475569; background: #f8fafc; border-radius: 6px;
         }
         .banner-title {
-            font-size: 2.8rem;
+            font-size: 2.2rem;
             font-weight: 900;
             color: #1e293b;
-            letter-spacing: 6px;
+            letter-spacing: 2px;
             line-height: 1;
         }
 
@@ -239,17 +229,8 @@
 
     <!-- 起動時スプラッシュ画面 -->
     <div id="splash-screen">
-        <div class="splash-logo">MOBITAROU</div>
+        <div class="splash-logo">manero</div>
         <div class="splash-sub">株式会社ベルアビエ 総合システム</div>
-        <div class="splash-hint">▼ 起動中に下スワイプで隠しゲーム起動</div>
-    </div>
-
-    <!-- 隠し暇つぶしゲームモーダル -->
-    <div id="hiddenGameModal">
-        <h2 style="margin:5px; font-size:1.1rem; font-family:monospace;">HIDDEN MINI GAME (暇つぶし用)</h2>
-        <canvas id="gameCanvas" width="320" height="400"></canvas>
-        <p style="font-size:0.8rem; margin:8px;">左右タップ/ドラッグでバー移動</p>
-        <button onclick="closeHiddenGame()" style="padding:6px 15px; font-size:0.85rem;">ゲーム終了してシステムへ</button>
     </div>
 
     <!-- 商品選択・追加モーダル -->
@@ -342,7 +323,7 @@
                     <div class="banner-title" id="terminalTitleLabel">営業</div>
                 </div>
 
-                <div class="terminal-sys-name" id="terminalSubLabel">モビロー販売管理システム</div>
+                <div class="terminal-sys-name" id="terminalSubLabel">manero 販売管理システム</div>
 
                 <table class="terminal-info-table">
                     <tr>
@@ -674,97 +655,14 @@ let nohinItems = [];
 let henpinItems = [];
 
 let activeInputCallback = null;
-let touchStartY = 0;
 
 window.onload = function() {
     renderStoreList(stores);
     selectStore(0);
     renderItemTable();
-    const savedMemo = localStorage.getItem('mobitarou_memo');
+    const savedMemo = localStorage.getItem('manero_memo');
     if (savedMemo) document.getElementById('quickMemo').value = savedMemo;
-
-    const splash = document.getElementById('splash-screen');
-    splash.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; });
-    splash.addEventListener('touchend', e => {
-        let touchEndY = e.changedTouches[0].clientY;
-        if (touchEndY - touchStartY > 50) {
-            splash.style.display = 'none';
-            openHiddenGame();
-        }
-    });
-    splash.addEventListener('mousedown', e => { touchStartY = e.clientY; });
-    splash.addEventListener('mouseup', e => {
-        let touchEndY = e.clientY;
-        if (touchEndY - touchStartY > 50) {
-            splash.style.display = 'none';
-            openHiddenGame();
-        }
-    });
 };
-
-/* --- 隠しブロック崩しゲーム --- */
-let gameInterval = null;
-function openHiddenGame() {
-    document.getElementById('hiddenGameModal').style.display = 'flex';
-    initGame();
-}
-function closeHiddenGame() {
-    document.getElementById('hiddenGameModal').style.display = 'none';
-    clearInterval(gameInterval);
-}
-
-function initGame() {
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    let x = canvas.width / 2, y = canvas.height - 30, dx = 2, dy = -2, ballRadius = 6;
-    let paddleHeight = 10, paddleWidth = 60, paddleX = (canvas.width - paddleWidth) / 2;
-    let brickRowCount = 3, brickColumnCount = 5, brickWidth = 50, brickHeight = 15, brickPadding = 10, brickOffsetTop = 30, brickOffsetLeft = 20;
-    
-    let bricks = [];
-    for(let c=0; c<brickColumnCount; c++) {
-        bricks[c] = [];
-        for(let r=0; r<brickRowCount; r++) { bricks[c][r] = { x: 0, y: 0, status: 1 }; }
-    }
-    
-    canvas.addEventListener('mousemove', e => {
-        let rect = canvas.getBoundingClientRect();
-        let rx = e.clientX - rect.left;
-        if(rx > 0 && rx < canvas.width) paddleX = rx - paddleWidth/2;
-    });
-    canvas.addEventListener('touchmove', e => {
-        let rect = canvas.getBoundingClientRect();
-        let rx = e.touches[0].clientX - rect.left;
-        if(rx > 0 && rx < canvas.width) paddleX = rx - paddleWidth/2;
-    });
-
-    function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        for(let c=0; c<brickColumnCount; c++) {
-            for(let r=0; r<brickRowCount; r++) {
-                let b = bricks[c][r];
-                if(b.status == 1) {
-                    let bx = (c*(brickWidth+brickPadding))+brickOffsetLeft;
-                    let by = (r*(brickHeight+brickPadding))+brickOffsetTop;
-                    b.x = bx; b.y = by;
-                    ctx.beginPath(); ctx.rect(bx, by, brickWidth, brickHeight); ctx.fillStyle = "#fff"; ctx.fill(); ctx.closePath();
-                    if(x > bx && x < bx+brickWidth && y > by && y < by+brickHeight) { dy = -dy; b.status = 0; }
-                }
-            }
-        }
-        ctx.beginPath(); ctx.arc(x, y, ballRadius, 0, Math.PI*2); ctx.fillStyle = "#fff"; ctx.fill(); ctx.closePath();
-        ctx.beginPath(); ctx.rect(paddleX, canvas.height-paddleHeight, paddleWidth, paddleHeight); ctx.fillStyle = "#fff"; ctx.fill(); ctx.closePath();
-
-        if(x + dx > canvas.width-ballRadius || x + dx < ballRadius) dx = -dx;
-        if(y + dy < ballRadius) dy = -dy;
-        else if(y + dy > canvas.height-ballRadius) {
-            if(x > paddleX && x < paddleX + paddleWidth) dy = -dy;
-            else { y = canvas.height - 30; x = canvas.width / 2; }
-        }
-        x += dx; y += dy;
-    }
-    if(gameInterval) clearInterval(gameInterval);
-    gameInterval = setInterval(draw, 10);
-}
 
 function clickSeisanNav() {
     switchApp('seisan-menu');
@@ -778,11 +676,11 @@ function switchMainTab(tabName) {
     if(tabName === 'seisan') {
         document.getElementById('tabSeisan').classList.add('active-tab');
         titleLabel.innerText = "営業";
-        subLabel.innerText = "モビロー販売管理システム (精算委託モード)";
+        subLabel.innerText = "manero 販売管理システム (精算委託モード)";
     } else if(tabName === 'nyuko') {
         document.getElementById('tabNyuko').classList.add('active-tab');
         titleLabel.innerText = "入出庫";
-        subLabel.innerText = "モビロー在庫・ハンディ入出庫管理";
+        subLabel.innerText = "manero 在庫・ハンディ入出庫管理";
     } else if(tabName === 'nippo') {
         document.getElementById('tabNippo').classList.add('active-tab');
         titleLabel.innerText = "日報";
@@ -1125,7 +1023,6 @@ function switchTab(tab) {
     renderItemTable();
 }
 
-/* --- 伝票データをローカルストレージへ保存する関数 --- */
 function saveActionLog() {
     const store = stores[currentStoreIndex];
     const dateVal = document.getElementById('inputDate').value;
@@ -1145,20 +1042,16 @@ function saveActionLog() {
         timestamp: new Date().toLocaleString()
     };
 
-    // 既存の履歴を読み込んで追加
-    let history = JSON.parse(localStorage.getItem('mobitarou_action_logs') || '[]');
-    history.unshift(logData); // 新しいものを先頭に追加
-    localStorage.setItem('mobitarou_action_logs', JSON.stringify(history));
+    let history = JSON.parse(localStorage.getItem('manero_action_logs') || '[]');
+    history.unshift(logData);
+    localStorage.setItem('manero_action_logs', JSON.stringify(history));
 }
 
 function openPrintModal() { document.getElementById('printModal').style.display = 'flex'; }
 function closePrintModal() { document.getElementById('printModal').style.display = 'none'; }
 function executePrint(mode) {
     closePrintModal();
-    
-    // 印刷実行時に自動でアクションを記憶
     saveActionLog();
-
     const area = document.getElementById('previewArea');
     area.className = mode === 'A4' ? 'preview-container mode-a4' : 'preview-container mode-mpb20';
     window.print();
@@ -1166,7 +1059,7 @@ function executePrint(mode) {
 
 function renderHistoryList() {
     const container = document.getElementById('historyListContainer');
-    let history = JSON.parse(localStorage.getItem('mobitarou_action_logs') || '[]');
+    let history = JSON.parse(localStorage.getItem('manero_action_logs') || '[]');
     
     if(history.length === 0) {
         container.innerHTML = `<div style="padding:15px; text-align:center; color:#64748b; font-size:0.85rem;">保存されたアクション履歴はありません。</div>`;
@@ -1183,7 +1076,7 @@ function renderHistoryList() {
 
 function clearActionLogs() {
     if(confirm("⚠️ 保存されているすべての操作・発行履歴を消去してもよろしいですか？")) {
-        localStorage.removeItem('mobitarou_action_logs');
+        localStorage.removeItem('manero_action_logs');
         renderHistoryList();
     }
 }
@@ -1240,7 +1133,7 @@ function saveStoreEdit() {
     renderStoreList(stores);
 }
 
-function saveMemo() { localStorage.setItem('mobitarou_memo', document.getElementById('quickMemo').value); }
+function saveMemo() { localStorage.setItem('manero_memo', document.getElementById('quickMemo').value); }
 function calcAppend(val) {
     const s = document.getElementById('calcScreen');
     s.value = (s.value === '0' || s.value === 'エラー') ? val : s.value + val;
