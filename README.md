@@ -1,8 +1,8 @@
-
-
-
+<!DOCTYPE html>
+<html lang="ja">
+<head>
     <meta charset="UTF-8">
-    <title>販売管理システム - 株式会社ベルアビエ</title>
+    <title>モビロー販売管理システム - 株式会社ベルアビエ</title>
     <style>
         :root {
             --bg-color: #f1f5f9;
@@ -234,8 +234,8 @@
         #printModal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 10000; }
         .modal-btn { display: block; width: 100%; padding: 10px; margin: 8px 0; font-size: 0.95rem; border-radius: 4px; cursor: pointer; font-weight: bold; }
     </style>
-
-
+</head>
+<body>
 
     <!-- 起動時スプラッシュ画面 -->
     <div id="splash-screen">
@@ -271,7 +271,7 @@
             <div style="display:flex; gap:6px; margin-bottom:10px;">
                 <select id="newMasterPrice" style="flex:1; padding:6px; font-size:0.85rem;">
                     <option value="380">380円</option><option value="500">500円</option><option value="700">700円</option>
-                    <option value="1000" selected="">1,000円</option><option value="1200">1,200円</option><option value="1500">1,500円</option>
+                    <option value="1000" selected>1,000円</option><option value="1200">1,200円</option><option value="1500">1,500円</option>
                     <option value="1900">1,900円</option><option value="2000">2,000円</option><option value="2900">2,900円</option>
                     <option value="3000">3,000円</option><option value="3900">3,900円</option><option value="4900">4,900円</option>
                     <option value="5900">5,900円</option><option value="6900">6,900円</option><option value="7900">7,900円</option>
@@ -290,7 +290,7 @@
     <div id="numpadModal">
         <div class="numpad-content">
             <div style="font-size: 0.85rem; font-weight: bold; color: #0f172a; margin-bottom: 6px;" id="numpadTitle">数値を入力</div>
-            <input type="text" id="numpadScreen" class="numpad-screen" readonly="" value="0">
+            <input type="text" id="numpadScreen" class="numpad-screen" readonly value="0">
             <div class="numpad-grid">
                 <button onclick="npPress('7')">7</button>
                 <button onclick="npPress('8')">8</button>
@@ -337,15 +337,15 @@
             <div class="terminal-screen-body">
                 <div class="terminal-banner">
                     <div class="banner-face-box">
-                        <span>(^_^)v=📡</span>
+                        <span>(^_^)v<br>📡送信中</span>
                     </div>
-                    <div class="banner-title" id="terminalTitleLabel">外販営業</div>
+                    <div class="banner-title" id="terminalTitleLabel">営業</div>
                 </div>
 
-                <div class="terminal-sys-name" id="terminalSubLabel">販売管理システム</div>
+                <div class="terminal-sys-name" id="terminalSubLabel">モビロー販売管理システム</div>
 
                 <table class="terminal-info-table">
-                    <tbody><tr>
+                    <tr>
                         <td class="label-col">端末No.</td>
                         <td>07</td>
                     </tr>
@@ -353,7 +353,7 @@
                         <td class="label-col">担当者</td>
                         <td>
                             <select id="tantoSelect">
-                                <option value="大和地豊" selected="">大和地豊</option>
+                                <option value="大和地豊" selected>大和地豊</option>
                                 <option value="スタッフA">スタッフA</option>
                                 <option value="スタッフB">スタッフB</option>
                             </select>
@@ -363,7 +363,7 @@
                         <td class="label-col">未送信データ</td>
                         <td style="color:#b91c1c; font-weight:bold; text-align:center;">【有】</td>
                     </tr>
-                </tbody></table>
+                </table>
             </div>
 
             <div class="terminal-bottom-buttons">
@@ -427,7 +427,7 @@
                             <select id="selectRate" onchange="changeStoreRate(this.value)" style="font-weight:bold; color:#0f172a; border:1px solid #cbd5e1; padding:3px; border-radius:4px;">
                                 <option value="50TAX">50TAX</option>
                                 <option value="55TAX">55TAX</option>
-                                <option value="60TAX" selected="">60TAX</option>
+                                <option value="60TAX" selected>60TAX</option>
                                 <option value="65TAX">65TAX</option>
                                 <option value="70TAX">70TAX</option>
                             </select>
@@ -536,7 +536,7 @@
         <div class="sub-panel" style="display:flex; justify-content:center;">
             <div style="max-width:280px; width:100%; background:#f8fafc; padding:15px; border-radius:8px; border:1px solid var(--border-color); text-align:center;">
                 <h3 style="margin-top:0; color:#0f172a; font-size:1rem;">🔢 ミニ電卓</h3>
-                <input type="text" id="calcScreen" style="width:100%; height:36px; font-size:1.4rem; text-align:right; margin-bottom:12px; padding:4px 8px; box-sizing:border-box; background:white;" readonly="" value="0">
+                <input type="text" id="calcScreen" style="width:100%; height:36px; font-size:1.4rem; text-align:right; margin-bottom:12px; padding:4px 8px; box-sizing:border-box; background:white;" readonly value="0">
                 <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:6px;">
                     <button onclick="calcClear()">C</button>
                     <button onclick="calcAppend('/')">÷</button>
@@ -1252,4 +1252,5 @@ function calcEqual() {
 }
 </script>
 
-
+</body>
+</html>
