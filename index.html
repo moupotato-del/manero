@@ -581,7 +581,7 @@
                     <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items:center; flex-wrap:wrap; gap:5px;">
                         <div>
                             <label>発行日:</label>
-                            <input type="text" id="inputDate" value="26/10/28 08:16" style="width:100px; padding:4px;" oninput="renderPreview()">
+                            <input type="text" id="inputDate" value="26/10/28 08:30" style="width:100px; padding:4px;" oninput="renderPreview()">
                             <label>伝票No:</label>
                             <input type="text" id="inputDenpyoNo" value="0726100111" style="width:85px; padding:4px;" oninput="renderPreview()">
                         </div>
@@ -1031,7 +1031,7 @@ function getRateMultiplier() {
 // 複数選択用商品選択モーダルを開く
 function openItemSelectModal() {
     tempSelectedQtys = {}; // 初期化
-    document.getElementById('itemSelectInput').value = '';
+    document.getElementById('itemSearchInput').value = '';
     document.getElementById('itemSelectModal').style.display = 'flex';
     renderMasterList(masterItems);
     updateSelectedSummary();
