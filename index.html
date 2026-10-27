@@ -13,7 +13,7 @@
         }
         * { 
             box-sizing: border-box; 
-            touch-action: manipulation; /* ダブルタップによるズームを防止 */
+            touch-action: manipulation;
         }
         body {
             font-family: 'Helvetica Neue', Arial, 'MS Gothic', monospace;
@@ -224,7 +224,7 @@
         #itemSelectModal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 15000; padding: 10px; }
         .modal-box { background: white; padding: 15px; border-radius: 8px; width: 100%; max-width: 450px; max-height: 85vh; overflow-y: auto; border: 2px solid #0f172a; }
         
-        /* 画面下部の固定テンキー (ダブルタップ拡大防止対応) */
+        /* 画面下部の固定テンキー */
         #numpadModal {
             display: none;
             position: fixed;
@@ -253,7 +253,7 @@
             border-radius: 4px; 
             font-weight: bold; 
             cursor: pointer;
-            touch-action: manipulation; /* タップの反応速度向上とズーム無効化 */
+            touch-action: manipulation;
             user-select: none;
         }
         .numpad-grid button:active { background: #e2e8f0; }
@@ -266,6 +266,32 @@
         /* 印刷選択モーダル */
         #printModal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 10000; padding: 10px; }
         .modal-btn { display: block; width: 100%; padding: 12px; margin: 8px 0; font-size: 1rem; border-radius: 4px; cursor: pointer; font-weight: bold; }
+
+        /* ==========================================
+           印刷専用設定: 伝票部分のみ出力し、タイトル等を除外
+           ========================================== */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #previewArea, #previewArea * {
+                visibility: visible;
+            }
+            #previewArea {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                border: none;
+                background: white;
+            }
+            /* 印刷モーダルやその他UIを強制非表示 */
+            #printModal, #numpadModal, #itemSelectModal, .utility-modal {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -475,9 +501,6 @@
     <!-- ① 伝票発行・返品・店舗管理システム画面 -->
     <div id="app-denpyo" class="tool-view">
         <button class="back-btn" onclick="switchApp('seisan-menu')">⬅ 精算委託メニューに戻る</button>
-        <div style="float:right;">
-            <button onclick="openPrintModal()" id="printButton" style="padding:6px 12px; background:#0f172a; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">🖨️ 伝票を印刷する</button>
-        </div>
         <div style="clear:both; margin-bottom:10px;"></div>
 
         <div class="main-grid">
@@ -502,7 +525,7 @@
                     <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items:center; flex-wrap:wrap; gap:5px;">
                         <div>
                             <label>発行日:</label>
-                            <input type="text" id="inputDate" value="26/10/27 20:20" style="width:100px; padding:4px;" oninput="renderPreview()">
+                            <input type="text" id="inputDate" value="26/10/27 20:28" style="width:100px; padding:4px;" oninput="renderPreview()">
                             <label>伝票No:</label>
                             <input type="text" id="inputDenpyoNo" value="0726100111" style="width:85px; padding:4px;" oninput="renderPreview()">
                         </div>
@@ -533,6 +556,11 @@
                 </div>
 
                 <div id="previewArea" class="preview-container mode-a4" style="margin-top:10px;"></div>
+
+                <!-- 伝票作成画面の一番下に配置した印刷ボタン -->
+                <div style="margin-top: 15px;">
+                    <button onclick="openPrintModal()" id="printButton" style="width: 100%; padding: 12px; background: #0f172a; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 1rem; cursor: pointer;">🖨️ 伝票を印刷する</button>
+                </div>
 
                 <div class="sub-panel" id="storeEditSection" style="display:none; margin-top:10px;">
                     <h4 style="margin-top:0; color:#0f172a; font-size:0.9rem;" id="storeEditTitle">店舗情報の編集・登録</h4>
