@@ -220,6 +220,42 @@
         table.denpyo-table th, table.denpyo-table td { border: 1px solid #000; padding: 4px 2px; text-align: center; font-size: 0.75rem; }
         table.denpyo-table th { background: #eee; }
 
+        /* 下へスクロール案内バナー（ぴょこぴょこ動く矢印付き） */
+        .scroll-guide-banner {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            color: #ffffff;
+            padding: 10px 14px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .bounce-arrow {
+            display: inline-block;
+            animation: bounceAnim 1.2s infinite ease-in-out;
+            font-size: 1.1rem;
+        }
+        @keyframes bounceAnim {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(6px); }
+        }
+
+        /* 業務終了時バックアップ推奨エリア用デザイン */
+        .daily-backup-box {
+            background: #fffbeb;
+            border: 2px dashed #d97706;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 15px;
+            text-align: center;
+        }
+
         /* 商品選択モーダル */
         #itemSelectModal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 15000; padding: 10px; }
         .modal-box { background: white; padding: 15px; border-radius: 8px; width: 100%; max-width: 450px; max-height: 85vh; overflow-y: auto; border: 2px solid #0f172a; }
@@ -512,6 +548,12 @@
             </div>
 
             <div class="sub-panel">
+                <!-- 下へのスクロール案内バナー（ぴょこぴょこ動く矢印付き） -->
+                <div class="scroll-guide-banner">
+                    <span>👇 納品書やプレビューは下にあります！下にスクロールしていってください</span>
+                    <span class="bounce-arrow">⬇️</span>
+                </div>
+
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <h3 id="selectedStoreName" style="margin:0; color:#0f172a; font-size:0.95rem;">店舗を選択してください</h3>
                     <div style="display:flex; gap:4px;">
@@ -525,7 +567,7 @@
                     <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items:center; flex-wrap:wrap; gap:5px;">
                         <div>
                             <label>発行日:</label>
-                            <input type="text" id="inputDate" value="26/10/28 08:04" style="width:100px; padding:4px;" oninput="renderPreview()">
+                            <input type="text" id="inputDate" value="26/10/28 08:10" style="width:100px; padding:4px;" oninput="renderPreview()">
                             <label>伝票No:</label>
                             <input type="text" id="inputDenpyoNo" value="0726100111" style="width:85px; padding:4px;" oninput="renderPreview()">
                         </div>
@@ -565,6 +607,13 @@
                 <!-- 伝票作成画面の一番下に配置した印刷ボタン -->
                 <div style="margin-top: 15px;">
                     <button onclick="openPrintModal()" id="printButton" style="width: 100%; padding: 12px; background: #0f172a; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 1rem; cursor: pointer;">🖨️ 伝票を印刷する</button>
+                </div>
+
+                <!-- 各伝票発行画面の下部に追加した「業務終了時のバックアップ推奨」エリア -->
+                <div class="daily-backup-box">
+                    <p style="margin:0 0 8px 0; font-size:0.85rem; font-weight:bold; color:#b45309;">⚠️ 本日の業務はお疲れ様でした！</p>
+                    <p style="margin:0 0 10px 0; font-size:0.75rem; color:#78350f;">データ保護のため、業務終了時には必ずバックアップ（JSON保存）を取るようお願いいたします。</p>
+                    <button onclick="exportBackupData()" style="width:100%; padding:10px; background:#d97706; color:white; border:none; border-radius:6px; font-weight:bold; font-size:0.85rem; cursor:pointer;">💾 本日のバックアップファイルを取得 (JSON)</button>
                 </div>
 
                 <div class="sub-panel" id="storeEditSection" style="display:none; margin-top:10px;">
@@ -909,11 +958,7 @@ function renderStoreList(storeArray) {
         
         const storesContainer = document.createElement('div');
         storesContainer.className = 'pref-stores-container';
-        
-        if (storesInPref.some(s => s._originalIndex === currentStoreIndex)) {
-            storesContainer.classList.add('open');
-            header.innerHTML = `📍 ${pref} (${storesInPref.length}店舗) <span>▲</span>`;
-        }
+        // 初期表示時はすべて閉じられた状態に保持
 
         header.onclick = function() {
             storesContainer.classList.toggle('open');
@@ -1069,7 +1114,7 @@ function renderItemTable() {
     if (!tbody || !thead) return;
     tbody.innerHTML = '';
 
-    // 請求書タブの場合：納品数と返品数から「在庫ないぶん（売上数）」を自動集計してテーブルに一覧化
+    // 請求書タブの場合
     if (currentTab === 'seikyu') {
         if(tableTitleLabel) tableTitleLabel.innerText = "請求・精算集計 (納品・返品から自動計算)";
         thead.innerHTML = `<tr><th>コード</th><th>品名</th><th>納品数</th><th>返品数</th><th>売上数</th><th>単価</th></tr>`;
