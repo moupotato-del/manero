@@ -229,6 +229,10 @@
         .numpad-grid button { padding: 14px; font-size: 1.2rem; background: #fff; color: #0f172a; border: 1px solid var(--border-color); border-radius: 4px; font-weight: bold; }
         .numpad-grid button:hover { background: #f1f5f9; }
 
+        /* 各種便利ツール用ポップアップ共通スタイル */
+        .utility-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 25000; padding: 10px; }
+        .utility-box { background: white; padding: 20px; border-radius: 8px; width: 100%; max-width: 320px; border: 2px solid #0f172a; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+
         /* 印刷選択モーダル */
         #printModal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 10000; padding: 10px; }
         .modal-btn { display: block; width: 100%; padding: 12px; margin: 8px 0; font-size: 1rem; border-radius: 4px; cursor: pointer; font-weight: bold; }
@@ -299,6 +303,63 @@
                 <button onclick="npClose()" style="flex:1; background:#64748b; color:white; padding:10px; font-size:0.9rem; border:none; border-radius:4px;">キャンセル</button>
                 <button onclick="npConfirm()" style="flex:1; background:#0f172a; color:white; padding:10px; font-size:0.9rem; border:none; border-radius:4px;">確定</button>
             </div>
+        </div>
+    </div>
+
+    <!-- ミニ電卓ポップアップモーダル (収納型) -->
+    <div id="calcModal" class="utility-modal">
+        <div class="utility-box" style="text-align:center;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <h3 style="margin:0; color:#0f172a; font-size:1rem;">🔢 簡易電卓</h3>
+                <button onclick="closeModal('calcModal')" style="background:none; border:none; font-size:1.1rem; font-weight:bold; cursor:pointer;">✕</button>
+            </div>
+            <input type="text" id="calcScreen" style="width:100%; height:40px; font-size:1.4rem; text-align:right; margin-bottom:12px; padding:4px 8px; box-sizing:border-box; background:#f8fafc; border:1px solid #cbd5e1; border-radius:4px;" readonly value="0">
+            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:6px;">
+                <button onclick="calcClear()" style="padding:10px; font-size:0.9rem;">C</button>
+                <button onclick="calcAppend('/')" style="padding:10px; font-size:0.9rem;">÷</button>
+                <button onclick="calcAppend('*')" style="padding:10px; font-size:0.9rem;">×</button>
+                <button onclick="calcAppend('-')" style="padding:10px; font-size:0.9rem;">-</button>
+                <button onclick="calcAppend('7')" style="padding:10px; font-size:0.9rem;">7</button>
+                <button onclick="calcAppend('8')" style="padding:10px; font-size:0.9rem;">8</button>
+                <button onclick="calcAppend('9')" style="padding:10px; font-size:0.9rem;">9</button>
+                <button onclick="calcAppend('+')" style="padding:10px; font-size:0.9rem;">+</button>
+                <button onclick="calcAppend('4')" style="padding:10px; font-size:0.9rem;">4</button>
+                <button onclick="calcAppend('5')" style="padding:10px; font-size:0.9rem;">5</button>
+                <button onclick="calcAppend('6')" style="padding:10px; font-size:0.9rem;">6</button>
+                <button onclick="calcEqual()" style="grid-row: span 2; background:#0f172a; color:white; padding:10px; font-size:0.9rem; border-radius:4px;">=</button>
+                <button onclick="calcAppend('1')" style="padding:10px; font-size:0.9rem;">1</button>
+                <button onclick="calcAppend('2')" style="padding:10px; font-size:0.9rem;">2</button>
+                <button onclick="calcAppend('3')" style="padding:10px; font-size:0.9rem;">3</button>
+                <button onclick="calcAppend('0')" style="grid-column: span 2; padding:10px; font-size:0.9rem;">0</button>
+                <button onclick="calcAppend('.')" style="padding:10px; font-size:0.9rem;">.</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- カレンダーポップアップモーダル (収納型) -->
+    <div id="calendarModal" class="utility-modal">
+        <div class="utility-box" style="text-align:center;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <h3 style="margin:0; color:#0f172a; font-size:1rem;">📅 スケジュール・カレンダー</h3>
+                <button onclick="closeModal('calendarModal')" style="background:none; border:none; font-size:1.1rem; font-weight:bold; cursor:pointer;">✕</button>
+            </div>
+            <p style="font-size:0.85rem; color:#64748b; margin-bottom:10px;">2026年10月 / 納品スケジュール</p>
+            <div style="font-size: 0.95rem; background: #f1f5f9; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 12px;">
+                <strong>本日: 2026年10月27日 (火)</strong>
+            </div>
+            <button onclick="closeModal('calendarModal')" style="width:100%; background:#0f172a; color:white; border:none; padding:8px; border-radius:4px; font-weight:bold;">閉じる</button>
+        </div>
+    </div>
+
+    <!-- クイックメモポップアップモーダル (収納型) -->
+    <div id="memoModal" class="utility-modal">
+        <div class="utility-box">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <h3 style="margin:0; color:#0f172a; font-size:1rem;">📝 クイックメモ書き</h3>
+                <button onclick="closeModal('memoModal')" style="background:none; border:none; font-size:1.1rem; font-weight:bold; cursor:pointer;">✕</button>
+            </div>
+            <textarea id="quickMemo" style="width:100%; height:180px; padding:8px; box-sizing:border-box; font-size:0.9rem; border:1px solid #cbd5e1; border-radius:4px; margin-bottom:10px;" placeholder="メモを入力..." oninput="saveMemo()"></textarea>
+            <button onclick="closeModal('memoModal')" style="width:100%; background:#0f172a; color:white; border:none; padding:8px; border-radius:4px; font-weight:bold;">保存して閉じる</button>
         </div>
     </div>
 
@@ -408,7 +469,7 @@
                     <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items:center; flex-wrap:wrap; gap:5px;">
                         <div>
                             <label>発行日:</label>
-                            <input type="text" id="inputDate" value="26/10/26 21:30" style="width:100px; padding:4px;" oninput="renderPreview()">
+                            <input type="text" id="inputDate" value="26/10/27 05:20" style="width:100px; padding:4px;" oninput="renderPreview()">
                             <label>伝票No:</label>
                             <input type="text" id="inputDenpyoNo" value="0726100111" style="width:85px; padding:4px;" oninput="renderPreview()">
                         </div>
@@ -477,16 +538,17 @@
         </div>
     </div>
 
-    <!-- ③ その他メニュー画面 -->
+    <!-- ③ その他メニュー画面（ここでカレンダー・メモ・電卓をいつでもポップアップ呼び出し可能） -->
     <div id="app-other" class="tool-view">
         <button class="back-btn" onclick="goHome()">⬅ 端末ホームに戻る</button>
         <div class="sub-panel" style="max-width:500px; margin:20px auto; text-align:center;">
-            <h3>🛠️ その他のツール選択</h3>
-            <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;">
+            <h3>🛠️ その他の便利ツール（普段は収納されています）</h3>
+            <p style="font-size:0.85rem; color:#64748b; margin-bottom:15px;">タップするとその場でポップアップ表示されます</p>
+            <div style="display:flex; flex-direction:column; gap:10px;">
                 <button onclick="switchApp('history')" style="padding:14px; font-size:1rem; background:#0f172a; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">📜 発行・操作履歴の確認</button>
-                <button onclick="switchApp('calendar')" style="padding:14px; font-size:1rem;">📅 スケジュール・カレンダー</button>
-                <button onclick="switchApp('memo')" style="padding:14px; font-size:1rem;">📝 クイックメモ書き</button>
-                <button onclick="switchApp('calc')" style="padding:14px; font-size:1rem;">🔢 ミニ電卓ツール</button>
+                <button onclick="openModal('calendarModal')" style="padding:14px; font-size:1rem; background:#475569; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">📅 スケジュール・カレンダーを開く</button>
+                <button onclick="openModal('memoModal')" style="padding:14px; font-size:1rem; background:#475569; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">📝 クイックメモを開く</button>
+                <button onclick="openModal('calcModal')" style="padding:14px; font-size:1rem; background:#475569; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">🔢 簡易電卓を開く</button>
             </div>
         </div>
     </div>
@@ -504,61 +566,38 @@
         </div>
     </div>
 
-    <!-- カレンダー画面 -->
-    <div id="app-calendar" class="tool-view">
-        <button class="back-btn" onclick="switchApp('other')">⬅ その他メニューに戻る</button>
-        <div class="sub-panel" style="text-align:center; padding: 30px;">
-            <h3 style="color:#0f172a;">📅 スケジュール・カレンダー</h3>
-            <p style="font-size:0.85rem;">2026年10月 / 納品スケジュール</p>
-            <div style="font-size: 1rem; background: #f1f5f9; padding: 15px; border-radius: 6px; border: 1px solid var(--border-color); display: inline-block; margin-top: 10px;">
-                <strong>本日: 2026年10月26日 (月)</strong>
-            </div>
-        </div>
-    </div>
-
-    <!-- メモ画面 -->
-    <div id="app-memo" class="tool-view">
-        <button class="back-btn" onclick="switchApp('other')">⬅ その他メニューに戻る</button>
-        <div class="sub-panel">
-            <h3 style="margin-top:0; color:#0f172a; font-size:0.95rem;">📝 クイックメモ書き</h3>
-            <textarea id="quickMemo" style="width:100%; height:250px; padding:10px; box-sizing:border-box; font-size:1rem;" placeholder="メモを入力..." oninput="saveMemo()"></textarea>
-        </div>
-    </div>
-
-    <!-- 電卓画面 -->
-    <div id="app-calc" class="tool-view">
-        <button class="back-btn" onclick="switchApp('other')">⬅ その他メニューに戻る</button>
-        <div class="sub-panel" style="display:flex; justify-content:center;">
-            <div style="max-width:280px; width:100%; background:#f8fafc; padding:15px; border-radius:8px; border:1px solid var(--border-color); text-align:center;">
-                <h3 style="margin-top:0; color:#0f172a; font-size:1rem;">🔢 ミニ電卓</h3>
-                <input type="text" id="calcScreen" style="width:100%; height:40px; font-size:1.4rem; text-align:right; margin-bottom:12px; padding:4px 8px; box-sizing:border-box; background:white;" readonly value="0">
-                <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:6px;">
-                    <button onclick="calcClear()" style="padding:12px; font-size:1rem;">C</button>
-                    <button onclick="calcAppend('/')" style="padding:12px; font-size:1rem;">÷</button>
-                    <button onclick="calcAppend('*')" style="padding:12px; font-size:1rem;">×</button>
-                    <button onclick="calcAppend('-')" style="padding:12px; font-size:1rem;">-</button>
-                    <button onclick="calcAppend('7')" style="padding:12px; font-size:1rem;">7</button>
-                    <button onclick="calcAppend('8')" style="padding:12px; font-size:1rem;">8</button>
-                    <button onclick="calcAppend('9')" style="padding:12px; font-size:1rem;">9</button>
-                    <button onclick="calcAppend('+')" style="padding:12px; font-size:1rem;">+</button>
-                    <button onclick="calcAppend('4')" style="padding:12px; font-size:1rem;">4</button>
-                    <button onclick="calcAppend('5')" style="padding:12px; font-size:1rem;">5</button>
-                    <button onclick="calcAppend('6')" style="padding:12px; font-size:1rem;">6</button>
-                    <button onclick="calcEqual()" style="grid-row: span 2; background:#0f172a; color:white; padding:12px; font-size:1rem;">=</button>
-                    <button onclick="calcAppend('1')" style="padding:12px; font-size:1rem;">1</button>
-                    <button onclick="calcAppend('2')" style="padding:12px; font-size:1rem;">2</button>
-                    <button onclick="calcAppend('3')" style="padding:12px; font-size:1rem;">3</button>
-                    <button onclick="calcAppend('0')" style="grid-column: span 2; padding:12px; font-size:1rem;">0</button>
-                    <button onclick="calcAppend('.')" style="padding:12px; font-size:1rem;">.</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
 </div>
 
 <script>
 let stores = [
+    {name: "秋田温泉さとみ", address: "秋田県秋田市添川字境内川原142-1", tel: "0188-33-7171", zip: "010-0822", rate: "60TAX"},
+    {name: "ブティック t4", address: "秋田県秋田市泉南1-15-25", tel: "0188-63-8234", zip: "010-0918", rate: "70TAX"},
+    {name: "ユフォーレ", address: "秋田県秋田市河辺三内字子丸1-1", tel: "0188-84-2111", zip: "019-2742", rate: "60TAX"},
+    {name: "ひまわり湯沢", address: "秋田県湯沢市上萩生田162", tel: "0183-78-0310", zip: "012-0055", rate: "60TAX"},
+    {name: "温泉ゆぽぽ 本館売店", address: "秋田県仙北市田沢湖卒田字早稲田430", tel: "0187-44-4390", zip: "014-1192", rate: "60TAX"},
+    {name: "温泉ゆぽぽ 温泉館", address: "秋田県仙北市田沢湖卒田字早稲田430", tel: "0187-44-4395", zip: "014-1113", rate: "60TAX"},
+    {name: "かのうや", address: "秋田県仙北市角館町岩瀬町13", tel: "0187-53-2413", zip: "014-0316", rate: "55TAX"},
+    {name: "小西合名会社", address: "秋田県仙北市美郷町六郷字馬町41", tel: "0187-84-1400", zip: "019-1404", rate: "60TAX"},
+    {name: "アイビー大観", address: "岩手県盛岡市繋湯ノ舘37-1", tel: "019-691-7466", zip: "020-0055", rate: "60TAX"},
+    {name: "アイビー紫苑", address: "岩手県盛岡市繋湯ノ舘74-2", tel: "019-691-7603", zip: "020-0055", rate: "60TAX"},
+    {name: "丸伊呉服店", address: "山形県新庄市万場町9-7", tel: "0233-22-0867", zip: "996-0028", rate: "60TAX"},
+    {name: "いきいきランドぽんぽ館", address: "山形県最上郡戸沢村野口155", tel: "0233-72-3600", zip: "999-6400", rate: "60TAX"},
+    {name: "なの花温泉 田田", address: "山形県東田川郡三川町大字横山字堤172-1", tel: "0235-66-4826", zip: "997-1301", rate: "60TAX"},
+    {name: "(株)カナヤ呉服店", address: "山形県酒田市中町1-6-14", tel: "0234-22-0375", zip: "998-0044", rate: "60TAX"},
+    {name: "売店 日本海", address: "山形県酒田市あきほ町30番地", tel: "0234-24-2066", zip: "998-0828", rate: "60TAX"},
+    {name: "花笠の湯", address: "山形県尾花沢市尾花沢5151-67", tel: "0237-24-1160", zip: "999-4221", rate: "60TAX"},
+    {name: "花笠高原荘", address: "山形県尾花沢市大字鶴子1300-27", tel: "0237-28-2121", zip: "999-4443", rate: "60TAX"},
+    {name: "ひまわり", address: "福島県郡山市安積2-46-4", tel: "024-945-5317", zip: "963-0107", rate: "60TAX"},
+    {name: "なりた温泉", address: "福島県郡山市安積町車川原字付田27", tel: "024-947-2626", zip: "963-0107", rate: "60TAX"},
+    {name: "オンリー・ドゥー", address: "福島県郡山市桑野2-14-8", tel: "024-935-6191", zip: "963-8025", rate: "60TAX"},
+    {name: "モアリッチ", address: "福島県郡山市虎丸町2-19", tel: "024-922-7211", zip: "963-8014", rate: "60TAX"},
+    {name: "まねきの湯", address: "福島県郡山市向河原町4-40", tel: "024-941-4126", zip: "963-8801", rate: "60TAX"},
+    {name: "丸正呉服店", address: "福島県石川郡玉川村", tel: "0247-57-2025", zip: "963-6312", rate: "60TAX"},
+    {name: "江戸屋", address: "福島県田村郡三春町字中町22", tel: "0247-62-3956", zip: "963-7766", rate: "60TAX"},
+    {name: "三春の里", address: "福島県田村郡三春町大字西方字石畑487-1", tel: "0247-62-8010", zip: "963-7722", rate: "65TAX"},
+    {name: "三ツ美屋旅館", address: "福島県田村郡三春町尼ヶ屋126", tel: "0247-62-2504", zip: "963-7745", rate: "65TAX"},
+    {name: "スーパーブックス新白河", address: "福島県田村市新白河新高山3", tel: "0248-31-1811", zip: "961-0853", rate: "60TAX"},
+    {name: "シャイニー", address: "福島県白河市本町3", tel: "0248-24-8227", zip: "961-0908", rate: "60TAX"},
     {name: "しゅーずとと乃", address: "茨城県猿島郡境町松岡町122", tel: "0280-87-3610", zip: "306-0433", rate: "55TAX"},
     {name: "思い出浪漫館", address: "茨城県久慈郡大子町袋田978", tel: "0295-72-3111", zip: "319-3523", rate: "50TAX"},
     {name: "森林の温泉", address: "茨城県久慈郡大子町矢田15-12", tel: "0295-72-3200", zip: "319-3552", rate: "60TAX"},
@@ -572,17 +611,22 @@ let stores = [
     {name: "ぬく森の湯", address: "茨城県常陸大宮市太田市大中町2076-6", tel: "0294-82-3366", zip: "311-0505", rate: "60TAX"},
     {name: "四季彩館", address: "茨城県常陸大宮市長倉407-2", tel: "0295-55-2626", zip: "311-4613", rate: "60TAX"},
     {name: "ささの湯", address: "茨城県常陸大宮市氷之沢3139", tel: "0295-58-2682", zip: "319-2513", rate: "60TAX"},
-    {name: "アイビー大観", address: "岩手県盛岡市繋湯ノ舘37-1", tel: "019-691-7466", zip: "020-0055", rate: "60TAX"},
-    {name: "アイビー紫苑", address: "岩手県盛岡市繋湯ノ舘74-2", tel: "019-691-7603", zip: "020-0055", rate: "60TAX"},
-    {name: "ホテルセキア", address: "熊本県玉名郡南関町関村1556", tel: "0968-69-6116", zip: "861-0804", rate: "60TAX"},
     {name: "ニーマ館林", address: "群馬県館林市楠木町3648-1", tel: "0276-71-0707", zip: "374-0004", rate: "60TAX"},
     {name: "アゼリアモール", address: "群馬県館林市楠木町3648-1", tel: "0276-71-0522", zip: "374-0004", rate: "55TAX"},
     {name: "AMIRI 桶川店", address: "埼玉県桶川市若宮1-5-2 桶川マイン2F", tel: "090-8847-0620", zip: "363-0022", rate: "55TAX"},
     {name: "山口呉服店", address: "埼玉県桶川市寿2-4-1", tel: "048-771-1105", zip: "363-0016", rate: "60TAX"},
     {name: "ホテルヘリテイジ四季の湯", address: "埼玉県熊谷市小江川228", tel: "048-536-1212", zip: "360-0103", rate: "60TAX"},
     {name: "バレンザポー鴻巣店", address: "埼玉県鴻巣市本町1-1-2 エルミこうのす2F", tel: "048-501-5242", zip: "365-0038", rate: "55TAX"},
-    {name: "松代病院", address: "新潟県十日町市松代3592-2", tel: "025-597-2100", zip: "942-1526", rate: "60TAX"},
-    {name: "くわどり湯ったり村", address: "新潟県上越市皆口601", tel: "025-541-2611", zip: "949-1738", rate: "60TAX"},
+    {name: "D2", address: "埼玉県さいたま市北区櫛引町2-574-1イオン大宮2F", tel: "048-653-5501", zip: "331-0825", rate: "55TAX"},
+    {name: "カラフル", address: "埼玉県さいたま市岩槻区本町3丁目2-5 ワッツ1F", tel: "070-1514-5550", zip: "339-0057", rate: "55TAX"},
+    {name: "ベル(株)ベルル", address: "埼玉県越谷市南越谷1-2876イオン南越谷1F", tel: "048-961-6455", zip: "343-0845", rate: "55TAX"},
+    {name: "サカモト", address: "埼玉県越谷市蒲生旭町1-49", tel: "048-986-2611", zip: "343-0842", rate: "55TAX"},
+    {name: "ワンダフル商会", address: "埼玉県川越市脇田町11-4", tel: "049-224-3443", zip: "350-1122", rate: "55TAX"},
+    {name: "キャメル", address: "埼玉県川越市山田2042-1ヤオコー川越山田2F", tel: "049-226-7330", zip: "350-0822", rate: "60TAX"},
+    {name: "ファミールモダル坂戸店", address: "埼玉県坂戸市日の出町5-30アクロスプラザ坂戸2F", tel: "049-283-5230", zip: "350-0225", rate: "53TAX"},
+    {name: "BELLE大井店", address: "埼玉県ふじみ野市ふじみ野1丁目2-1 イオン内", tel: "049-261-3101", zip: "356-0050", rate: "50TAX"},
+    {name: "フォルテ上尾店", address: "埼玉県上尾市谷津2-1-1ショーサンプラザ1F", tel: "048-772-9111", zip: "362-0042", rate: "50TAX"},
+    {name: "AMIRI桶川店", address: "埼玉県桶川市若宮1-5-2桶川マイン2F", tel: "090-8847-0620", zip: "363-0022", rate: "50TAX"},
     {name: "松孝商店", address: "千葉県鴨川市小湊183", tel: "04-7095-3010", zip: "299-5501", rate: "60TAX"},
     {name: "亀の井ホテル喜速川", address: "栃木県さくら市喜速川5296-1", tel: "0286-86-6266", zip: "329-1412", rate: "60TAX"},
     {name: "花子", address: "栃木県宇都宮市宇都宮駅ビル1F", tel: "0286-33-5353", zip: "320-0802", rate: "55TAX"},
@@ -620,47 +664,14 @@ let stores = [
     {name: "万葉亭", address: "栃木県日光市鬼怒川温泉大原390-3", tel: "0287-77-3900", zip: "321-2522", rate: "60TAX"},
     {name: "晃陽苑", address: "栃木県日光市瀬尾1640-14", tel: "0288-53-1150", zip: "321-1264", rate: "60TAX"},
     {name: "正喜屋呉服店", address: "栃木県矢板市本町6-6", tel: "0287-43-0073", zip: "329-2164", rate: "60TAX"},
-    {name: "牛岳温泉健康センター", address: "富山県富山市山田赤目谷31-28", tel: "076-457-2131", zip: "930-2117", rate: "60TAX"},
-    {name: "ひまわり", address: "福島県郡山市安積2-46-4", tel: "024-945-5317", zip: "963-0107", rate: "60TAX"},
-    {name: "なりた温泉", address: "福島県郡山市安積町車川原字付田27", tel: "024-947-2626", zip: "963-0107", rate: "60TAX"},
-    {name: "オンリー・ドゥー", address: "福島県郡山市桑野2-14-8", tel: "024-935-6191", zip: "963-8025", rate: "60TAX"},
-    {name: "モアリッチ", address: "福島県郡山市虎丸町2-19", tel: "024-922-7211", zip: "963-8014", rate: "60TAX"},
-    {name: "まねきの湯", address: "福島県郡山市向河原町4-40", tel: "024-941-4126", zip: "963-8801", rate: "60TAX"},
-    {name: "丸正呉服店", address: "福島県石川郡玉川村", tel: "0247-57-2025", zip: "963-6312", rate: "60TAX"},
-    {name: "江戸屋", address: "福島県田村郡三春町字中町22", tel: "0247-62-3956", zip: "963-7766", rate: "60TAX"},
-    {name: "三春の里", address: "福島県田村郡三春町大字西方字石畑487-1", tel: "0247-62-8010", zip: "963-7722", rate: "65TAX"},
-    {name: "三ツ美屋旅館", address: "福島県田村郡三春町尼ヶ屋126", tel: "0247-62-2504", zip: "963-7745", rate: "65TAX"},
-    {name: "スーパーブックス新白河", address: "福島県田村市新白河新高山3", tel: "0248-31-1811", zip: "961-0853", rate: "60TAX"},
-    {name: "シャイニー", address: "福島県白河市本町3", tel: "0248-24-8227", zip: "961-0908", rate: "60TAX"},
-    {name: "リンデン", address: "兵庫県神戸市中央区相生町3-2-1", tel: "078-361-8256", zip: "650-0025", rate: "60TAX"},
     {name: "生活工房", address: "栃木県那須塩原市材木町3-5", tel: "0287-63-8261", zip: "325-0048", rate: "60TAX"},
     {name: "アバタール", address: "栃木県大田原市本町一丁目2707-2", tel: "0288-92-7322", zip: "324-0041", rate: "60TAX"},
-    {name: "D2", address: "埼玉県さいたま市北区櫛引町2-574-1イオン大宮2F", tel: "048-653-5501", zip: "331-0825", rate: "55TAX"},
-    {name: "カラフル", address: "埼玉県さいたま市岩槻区本町3丁目2-5 ワッツ1F", tel: "070-1514-5550", zip: "339-0057", rate: "55TAX"},
-    {name: "ベル(株)ベルル", address: "埼玉県越谷市南越谷1-2876イオン南越谷1F", tel: "048-961-6455", zip: "343-0845", rate: "55TAX"},
-    {name: "サカモト", address: "埼玉県越谷市蒲生旭町1-49", tel: "048-986-2611", zip: "343-0842", rate: "55TAX"},
-    {name: "ワンダフル商会", address: "埼玉県川越市脇田町11-4", tel: "049-224-3443", zip: "350-1122", rate: "55TAX"},
-    {name: "キャメル", address: "埼玉県川越市山田2042-1ヤオコー川越山田2F", tel: "049-226-7330", zip: "350-0822", rate: "60TAX"},
-    {name: "ファミールモダル坂戸店", address: "埼玉県坂戸市日の出町5-30アクロスプラザ坂戸2F", tel: "049-283-5230", zip: "350-0225", rate: "53TAX"},
-    {name: "BELLE大井店", address: "埼玉県ふじみ野市ふじみ野1丁目2-1 イオン内", tel: "049-261-3101", zip: "356-0050", rate: "50TAX"},
-    {name: "フォルテ上尾店", address: "埼玉県上尾市谷津2-1-1ショーサンプラザ1F", tel: "048-772-9111", zip: "362-0042", rate: "50TAX"},
-    {name: "AMIRI桶川店", address: "埼玉県桶川市若宮1-5-2桶川マイン2F", tel: "090-8847-0620", zip: "363-0022", rate: "50TAX"},
+    {name: "牛岳温泉健康センター", address: "富山県富山市山田赤目谷31-28", tel: "076-457-2131", zip: "930-2117", rate: "60TAX"},
+    {name: "松代病院", address: "新潟県十日町市松代3592-2", tel: "025-597-2100", zip: "942-1526", rate: "60TAX"},
+    {name: "くわどり湯ったり村", address: "新潟県上越市皆口601", tel: "025-541-2611", zip: "949-1738", rate: "60TAX"},
+    {name: "リンデン", address: "兵庫県神戸市中央区相生町3-2-1", tel: "078-361-8256", zip: "650-0025", rate: "60TAX"},
     {name: "アリューレ", address: "大阪府大阪市天王寺区法円坂町17-24", tel: "090-3658-4831", zip: "543-0041", rate: "60TAX"},
-    {name: "丸伊呉服店", address: "山形県新庄市万場町9-7", tel: "0233-22-0867", zip: "996-0028", rate: "60TAX"},
-    {name: "いきいきランドぽんぽ館", address: "山形県最上郡戸沢村野口155", tel: "0233-72-3600", zip: "999-6400", rate: "60TAX"},
-    {name: "なの花温泉 田田", address: "山形県東田川郡三川町大字横山字堤172-1", tel: "0235-66-4826", zip: "997-1301", rate: "60TAX"},
-    {name: "(株)カナヤ呉服店", address: "山形県酒田市中町1-6-14", tel: "0234-22-0375", zip: "998-0044", rate: "60TAX"},
-    {name: "売店 日本海", address: "山形県酒田市あきほ町30番地", tel: "0234-24-2066", zip: "998-0828", rate: "60TAX"},
-    {name: "花笠の湯", address: "山形県尾花沢市尾花沢5151-67", tel: "0237-24-1160", zip: "999-4221", rate: "60TAX"},
-    {name: "花笠高原荘", address: "山形県尾花沢市大字鶴子1300-27", tel: "0237-28-2121", zip: "999-4443", rate: "60TAX"},
-    {name: "秋田温泉さとみ", address: "秋田県秋田市添川字境内川原142-1", tel: "0188-33-7171", zip: "010-0822", rate: "60TAX"},
-    {name: "ブティック t4", address: "秋田県秋田市泉南1-15-25", tel: "0188-63-8234", zip: "010-0918", rate: "70TAX"},
-    {name: "ユフォーレ", address: "秋田県秋田市河辺三内字子丸1-1", tel: "0188-84-2111", zip: "019-2742", rate: "60TAX"},
-    {name: "ひまわり湯沢", address: "秋田県湯沢市上萩生田162", tel: "0183-78-0310", zip: "012-0055", rate: "60TAX"},
-    {name: "温泉ゆぽぽ 本館売店", address: "秋田県仙北市田沢湖卒田字早稲田430", tel: "0187-44-4390", zip: "014-1192", rate: "60TAX"},
-    {name: "温泉ゆぽぽ 温泉館", address: "秋田県仙北市田沢湖卒田字早稲田430", tel: "0187-44-4395", zip: "014-1113", rate: "60TAX"},
-    {name: "かのうや", address: "秋田県仙北市角館町岩瀬町13", tel: "0187-53-2413", zip: "014-0316", rate: "55TAX"},
-    {name: "小西合名会社", address: "秋田県仙北市美郷町六郷字馬町41", tel: "0187-84-1400", zip: "019-1404", rate: "60TAX"}
+    {name: "ホテルセキア", address: "熊本県玉名郡南関町関村1556", tel: "0968-69-6116", zip: "861-0804", rate: "60TAX"}
 ];
 
 let masterItems = [
@@ -746,8 +757,12 @@ function switchApp(appId) {
 
 function goHome() { switchApp('home'); }
 
+// ポップアップモーダルの開閉関数
+function openModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
+function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
+
 function getPrefecture(address) {
-    const prefs = ['岩手県', '秋田県', '山形県', '福島県', '茨城県', '群馬県', '埼玉県', '千葉県', '栃木県', '富山県', '新潟県', '兵庫県', '大阪府', '熊本県'];
+    const prefs = ['秋田県', '岩手県', '山形県', '福島県', '茨城県', '群馬県', '埼玉県', '千葉県', '栃木県', '富山県', '新潟県', '兵庫県', '大阪府', '熊本県'];
     for (let p of prefs) { if (address.includes(p)) return p; }
     return "その他";
 }
@@ -764,8 +779,8 @@ function renderStoreList(storeArray) {
         grouped[pref].push(store);
     });
 
-    // 北から順の固定並び順定義
-    const prefOrder = ['岩手県', '秋田県', '山形県', '福島県', '茨城県', '群馬県', '埼玉県', '千葉県', '栃木県', '富山県', '新潟県', '兵庫県', '大阪府', '熊本県', 'その他'];
+    // 秋田を最上位にし、北から南へ並ぶ順序定義
+    const prefOrder = ['秋田県', '岩手県', '山形県', '福島県', '茨城県', '群馬県', '埼玉県', '千葉県', '栃木県', '富山県', '新潟県', '兵庫県', '大阪府', '熊本県', 'その他'];
 
     prefOrder.forEach(pref => {
         if (!grouped[pref] || grouped[pref].length === 0) return;
