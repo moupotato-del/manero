@@ -459,9 +459,9 @@
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <h3 id="selectedStoreName" style="margin:0; color:#0f172a; font-size:0.95rem;">店舗を選択してください</h3>
                     <div style="display:flex; gap:4px;">
-                        <button onclick="switchTab('nohin')" id="btnTabNohin" style="font-size:0.75rem; padding:4px 6px;">委託納品書</button>
-                        <button onclick="switchTab('henpin')" id="btnTabHenpin" style="font-size:0.75rem; padding:4px 6px;">返品伝票</button>
-                        <button onclick="switchTab('seikyu')" id="btnTabSeikyu" style="font-size:0.75rem; padding:4px 6px;">請求書</button>
+                        <button onclick="switchTab('nohin')" id="btnTabNohin" style="font-size:0.75rem; padding:4px 6px; cursor:pointer;">委託納品書</button>
+                        <button onclick="switchTab('henpin')" id="btnTabHenpin" style="font-size:0.75rem; padding:4px 6px; cursor:pointer;">返品伝票</button>
+                        <button onclick="switchTab('seikyu')" id="btnTabSeikyu" style="font-size:0.75rem; padding:4px 6px; cursor:pointer;">請求書</button>
                     </div>
                 </div>
 
@@ -469,7 +469,7 @@
                     <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items:center; flex-wrap:wrap; gap:5px;">
                         <div>
                             <label>発行日:</label>
-                            <input type="text" id="inputDate" value="26/10/27 05:34" style="width:100px; padding:4px;" oninput="renderPreview()">
+                            <input type="text" id="inputDate" value="26/10/27 05:39" style="width:100px; padding:4px;" oninput="renderPreview()">
                             <label>伝票No:</label>
                             <input type="text" id="inputDenpyoNo" value="0726100111" style="width:85px; padding:4px;" oninput="renderPreview()">
                         </div>
@@ -484,14 +484,14 @@
                             </select>
                         </div>
                     </div>
-                    <div style="font-size:0.8rem; font-weight:bold; margin-bottom:4px; color:#0f172a;">明細データ (在庫ゼロから選択・追加)</div>
+                    <div style="font-size:0.8rem; font-weight:bold; margin-bottom:4px; color:#0f172a;" id="tableTitleLabel">明細データ (在庫ゼロから選択・追加)</div>
                     <table class="item-table" id="itemTable">
-                        <thead>
+                        <thead id="itemTableHead">
                             <tr><th>コード</th><th>品名</th><th>数量</th><th>定価(円)</th><th>単価</th><th>操作</th></tr>
                         </thead>
                         <tbody id="itemRowsBody"></tbody>
                     </table>
-                    <button onclick="openItemSelectModal()" style="font-size:0.75rem; padding:6px 12px; background:#16a34a; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer; width:100%;">＋ リストから商品を選択・追加</button>
+                    <button id="addItemBtn" onclick="openItemSelectModal()" style="font-size:0.75rem; padding:6px 12px; background:#16a34a; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer; width:100%;">＋ リストから商品を選択・追加</button>
                 </div>
 
                 <!-- 伝票下部の無地空欄入力欄（表記名なし） -->
@@ -992,8 +992,36 @@ function renderItemTable() {
     highlightActiveTabButton();
     const multiplier = getRateMultiplier();
     const tbody = document.getElementById('itemRowsBody');
+    const thead = document.getElementById('itemTableHead');
+    const tableTitleLabel = document.getElementById('tableTitleLabel');
+    const addItemBtn = document.getElementById('addItemBtn');
+
     tbody.innerHTML = '';
-    
+
+    // 請求書タブの場合は選択・明細入力を切り替える
+    if (currentTab === 'seikyu') {
+        tableTitleLabel.innerText = "請求・精算集計 (プレビュー連動)";
+        thead.innerHTML = `<tr><th>コード</th><th>品名</th><th>前在</th><th>本在</th><th>売数</th><th>単価</th></tr>`;
+        tbody.innerHTML = `
+            <tr>
+                <td>001000</td>
+                <td style="text-align:left; padding-left:6px;">衣類 1,000円売</td>
+                <td><input type="text" value="0" style="width:40px;"></td>
+                <td><input type="text" value="0" style="width:40px;"></td>
+                <td><input type="text" value="0" style="width:40px;"></td>
+                <td>${Math.round(1000 * multiplier).toLocaleString()} 円</td>
+            </tr>
+        `;
+        addItemBtn.style.display = 'none';
+        renderPreview();
+        return;
+    }
+
+    // 納品書・返品伝票タブの場合
+    tableTitleLabel.innerText = currentTab === 'henpin' ? "返品明細データ (在庫から選択)" : "納品明細データ (在庫から選択・追加)";
+    thead.innerHTML = `<tr><th>コード</th><th>品名</th><th>数量</th><th>定価(円)</th><th>単価</th><th>操作</th></tr>`;
+    addItemBtn.style.display = 'block';
+
     const targetItems = (currentTab === 'henpin') ? henpinItems : nohinItems;
     
     if(targetItems.length === 0) {
@@ -1010,10 +1038,10 @@ function renderItemTable() {
         tr.innerHTML = `
             <td>${item.code}</td>
             <td style="text-align:left; padding-left:6px;">${item.name}</td>
-            <td><input type="text" readonly value="${item.qty}" onclick="openNumpad('数量を入力', ${item.qty}, (val)=>{updateItem(${idx}, 'qty', val);})"></td>
+            <td><input type="text" readonly value="${item.qty}" onclick="openNumpad('数量を入力', ${item.qty}, (val)=>{updateItem(${idx}, 'qty', val);})" style="cursor:pointer; background:#fff; border:1px solid #cbd5e1; border-radius:3px;"></td>
             <td>${item.listPrice.toLocaleString()} 円</td>
             <td style="font-weight:bold; color:#0f172a;">${calculatedUnitPrice.toLocaleString()} 円</td>
-            <td><button style="background:#991b1b; color:white; border:none; padding:2px 5px; font-size:0.7rem;" onclick="removeItem(${idx})">✕</button></td>
+            <td><button style="background:#991b1b; color:white; border:none; padding:2px 5px; font-size:0.7rem; cursor:pointer;" onclick="removeItem(${idx})">✕</button></td>
         `;
         tbody.appendChild(tr);
     });
@@ -1128,7 +1156,7 @@ function renderPreview() {
             </div>
             <table class="denpyo-table">
                 <tr><th>コード</th><th>品名</th><th>前在</th><th>本在</th><th>売数</th><th>単価</th><th>金額</th></tr>
-                <tr><td>001000</td><td>衣類 1,000円売</td><td>0</td><td>0</td><td>0</td><td>600</td><td>0</td></tr>
+                <tr><td>001000</td><td>衣類 1,000円売</td><td>0</td><td>0</td><td>0</td><td>${Math.round(1000 * multiplier)}</td><td>0</td></tr>
                 <tr><td colspan="6" style="text-align:right; font-weight:bold;">合計金額</td><td>0</td></tr>
             </table>
             <div style="margin-top:10px; padding:6px; border:1px solid #000; font-size:0.75rem; min-height:40px; background:#fff;">
@@ -1227,7 +1255,6 @@ function openNewStoreForm() {
 }
 
 function editStore(index) {
-    // 選択状態にしてから編集フォームを表示
     selectStore(index);
     const store = stores[index];
     document.getElementById('storeEditSection').style.display = 'block';
