@@ -200,7 +200,7 @@
         .store-item:hover { background: #f1f5f9; }
         .store-item.active { background: #0f172a; color: white; font-weight: bold; border-color: #0f172a; }
         .store-actions { display: flex; gap: 4px; }
-        .store-actions button { padding: 2px 6px; font-size: 0.7rem; }
+        .store-actions button { padding: 2px 6px; font-size: 0.7rem; cursor: pointer; }
 
         .input-control-box { background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 10px; font-size: 0.85rem; }
         .item-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; font-size: 0.85rem; }
@@ -469,7 +469,7 @@
                     <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items:center; flex-wrap:wrap; gap:5px;">
                         <div>
                             <label>発行日:</label>
-                            <input type="text" id="inputDate" value="26/10/27 05:27" style="width:100px; padding:4px;" oninput="renderPreview()">
+                            <input type="text" id="inputDate" value="26/10/27 05:34" style="width:100px; padding:4px;" oninput="renderPreview()">
                             <label>伝票No:</label>
                             <input type="text" id="inputDenpyoNo" value="0726100111" style="width:85px; padding:4px;" oninput="renderPreview()">
                         </div>
@@ -810,7 +810,7 @@ function importBackupData(event) {
         }
     };
     reader.readAsText(file);
-    event.target.value = ''; // リセット
+    event.target.value = '';
 }
 
 function getPrefecture(address) {
@@ -1033,7 +1033,7 @@ function removeItem(idx) {
 }
 
 function renderPreview() {
-    const store = stores[currentStoreIndex];
+    const store = stores[currentStoreIndex] || stores[0];
     const area = document.getElementById('previewArea');
     const dateVal = document.getElementById('inputDate').value;
     const noVal = document.getElementById('inputDenpyoNo').value;
@@ -1148,7 +1148,7 @@ function switchTab(tab) {
 }
 
 function saveActionLog() {
-    const store = stores[currentStoreIndex];
+    const store = stores[currentStoreIndex] || stores[0];
     const dateVal = document.getElementById('inputDate').value;
     const noVal = document.getElementById('inputDenpyoNo').value;
     const tantoVal = document.getElementById('tantoSelect').value;
@@ -1227,9 +1227,11 @@ function openNewStoreForm() {
 }
 
 function editStore(index) {
+    // 選択状態にしてから編集フォームを表示
+    selectStore(index);
     const store = stores[index];
     document.getElementById('storeEditSection').style.display = 'block';
-    document.getElementById('storeEditTitle').innerText = "店舗情報の編集";
+    document.getElementById('storeEditTitle').innerText = "店舗情報の編集: " + store.name;
     document.getElementById('editIndex').value = index;
     document.getElementById('editName').value = store.name;
     document.getElementById('editAddress').value = store.address;
