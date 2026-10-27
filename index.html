@@ -559,7 +559,6 @@
 
 <script>
 let stores = [
-    /* 既存＆追加したすべての店舗データ */
     {name: "しゅーずとと乃", address: "茨城県猿島郡境町松岡町122", tel: "0280-87-3610", zip: "306-0433", rate: "55TAX"},
     {name: "思い出浪漫館", address: "茨城県久慈郡大子町袋田978", tel: "0295-72-3111", zip: "319-3523", rate: "50TAX"},
     {name: "森林の温泉", address: "茨城県久慈郡大子町矢田15-12", tel: "0295-72-3200", zip: "319-3552", rate: "60TAX"},
@@ -634,7 +633,6 @@ let stores = [
     {name: "スーパーブックス新白河", address: "福島県田村市新白河新高山3", tel: "0248-31-1811", zip: "961-0853", rate: "60TAX"},
     {name: "シャイニー", address: "福島県白河市本町3", tel: "0248-24-8227", zip: "961-0908", rate: "60TAX"},
     {name: "リンデン", address: "兵庫県神戸市中央区相生町3-2-1", tel: "078-361-8256", zip: "650-0025", rate: "60TAX"},
-    /* 画像から新規追加した店舗 */
     {name: "生活工房", address: "栃木県那須塩原市材木町3-5", tel: "0287-63-8261", zip: "325-0048", rate: "60TAX"},
     {name: "アバタール", address: "栃木県大田原市本町一丁目2707-2", tel: "0288-92-7322", zip: "324-0041", rate: "60TAX"},
     {name: "D2", address: "埼玉県さいたま市北区櫛引町2-574-1イオン大宮2F", tel: "048-653-5501", zip: "331-0825", rate: "55TAX"},
@@ -749,7 +747,7 @@ function switchApp(appId) {
 function goHome() { switchApp('home'); }
 
 function getPrefecture(address) {
-    const prefs = ['秋田県', '山形県', '大阪府', '茨城県', '岩手県', '熊本県', '群馬県', '埼玉県', '新潟県', '千葉県', '栃木県', '富山県', '福島県', '兵庫県'];
+    const prefs = ['岩手県', '秋田県', '山形県', '福島県', '茨城県', '群馬県', '埼玉県', '千葉県', '栃木県', '富山県', '新潟県', '兵庫県', '大阪府', '熊本県'];
     for (let p of prefs) { if (address.includes(p)) return p; }
     return "その他";
 }
@@ -766,28 +764,34 @@ function renderStoreList(storeArray) {
         grouped[pref].push(store);
     });
 
-    for (const pref in grouped) {
+    // 北から順の固定並び順定義
+    const prefOrder = ['岩手県', '秋田県', '山形県', '福島県', '茨城県', '群馬県', '埼玉県', '千葉県', '栃木県', '富山県', '新潟県', '兵庫県', '大阪府', '熊本県', 'その他'];
+
+    prefOrder.forEach(pref => {
+        if (!grouped[pref] || grouped[pref].length === 0) return;
+        const storesInPref = grouped[pref];
+
         const prefGroup = document.createElement('div');
         prefGroup.className = 'pref-group';
         
         const header = document.createElement('div');
         header.className = 'pref-header';
-        header.innerHTML = `<span>📍 ${pref} (${grouped[pref].length}店舗)</span> <span>▼</span>`;
+        header.innerHTML = `<span>📍 ${pref} (${storesInPref.length}店舗)</span> <span>▼</span>`;
         
         const storesContainer = document.createElement('div');
         storesContainer.className = 'pref-stores-container';
         
-        if (grouped[pref].some(s => s._originalIndex === currentStoreIndex)) {
+        if (storesInPref.some(s => s._originalIndex === currentStoreIndex)) {
             storesContainer.classList.add('open');
-            header.innerHTML = `<span>📍 ${pref} (${grouped[pref].length}店舗)</span> <span>▲</span>`;
+            header.innerHTML = `<span>📍 ${pref} (${storesInPref.length}店舗)</span> <span>▲</span>`;
         }
 
         header.onclick = function() {
             storesContainer.classList.toggle('open');
-            header.innerHTML = `<span>📍 ${pref} (${grouped[pref].length}店舗)</span> <span>${storesContainer.classList.contains('open') ? '▲' : '▼'}</span>`;
+            header.innerHTML = `<span>📍 ${pref} (${storesInPref.length}店舗)</span> <span>${storesContainer.classList.contains('open') ? '▲' : '▼'}</span>`;
         };
 
-        grouped[pref].forEach(store => {
+        storesInPref.forEach(store => {
             const item = document.createElement('div');
             item.className = `store-item ${store._originalIndex === currentStoreIndex ? 'active' : ''}`;
             item.innerHTML = `
@@ -803,7 +807,7 @@ function renderStoreList(storeArray) {
         prefGroup.appendChild(header);
         prefGroup.appendChild(storesContainer);
         container.appendChild(prefGroup);
-    }
+    });
 }
 
 function filterStores() {
