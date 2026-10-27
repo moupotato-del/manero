@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>manero - 株式会社ベルアビエ</title>
     <style>
         :root {
@@ -10,15 +11,19 @@
             --primary-color: #1e293b;
             --border-color: #cbd5e1;
         }
+        * { box-sizing: border-box; }
         body {
             font-family: 'Helvetica Neue', Arial, 'MS Gothic', monospace;
             background: var(--bg-color);
             color: #0f172a;
             margin: 0;
-            padding: 10px;
+            padding: 0;
+            width: 100vw;
+            overflow-x: hidden;
+            -webkit-text-size-adjust: 100%;
         }
 
-        /* 起動時スプラッシュ画面 (1.5秒・シンプル) */
+        /* 起動時スプラッシュ画面 */
         #splash-screen {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
@@ -41,20 +46,20 @@
             100% { opacity: 0; visibility: hidden; } 
         }
 
-        .container { max-width: 1200px; margin: 0 auto; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 5px; width: 100%; }
         
         /* ハンディターミナル風専用筐体ボックス */
         .handy-terminal {
+            width: 100%;
             max-width: 420px;
-            margin: 20px auto;
+            margin: 10px auto;
             background: #ffffff;
-            border: 5px solid #2b3440;
-            border-radius: 12px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+            border: 4px solid #2b3440;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
             overflow: hidden;
         }
 
-        /* 上部タブメニュー (実機そっくりな赤茶系) */
         .terminal-top-tabs {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -75,27 +80,23 @@
         .top-tab-btn:hover { background: #942b2b; }
         .top-tab-btn.active-tab { background: #7c2424; border-bottom: 3px solid #fff; }
 
-        /* 中央メイン画面エリア */
-        .terminal-screen-body {
-            padding: 20px;
-            background: #ffffff;
-        }
+        .terminal-screen-body { padding: 15px; background: #ffffff; }
         .terminal-banner {
             display: flex;
             align-items: center;
             justify-content: space-between;
             border-bottom: 3px solid #1e293b;
-            padding-bottom: 12px;
-            margin-bottom: 15px;
+            padding-bottom: 10px;
+            margin-bottom: 12px;
         }
         .banner-face-box {
-            width: 90px; height: 50px;
+            width: 80px; height: 45px;
             border: 2px solid #cbd5e1;
             display: flex; align-items: center; justify-content: center;
-            font-size: 0.85rem; font-weight: bold; color: #475569; background: #f8fafc; border-radius: 6px;
+            font-size: 0.8rem; font-weight: bold; color: #475569; background: #f8fafc; border-radius: 6px;
         }
         .banner-title {
-            font-size: 2.2rem;
+            font-size: 2rem;
             font-weight: 900;
             color: #1e293b;
             letter-spacing: 2px;
@@ -103,10 +104,10 @@
         }
 
         .terminal-sys-name {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: bold;
             color: #334155;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             border-left: 4px solid #a83232;
             padding-left: 8px;
         }
@@ -114,12 +115,12 @@
         .terminal-info-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             font-size: 0.95rem;
         }
         .terminal-info-table td {
             border: 1px solid #94a3b8;
-            padding: 10px 12px;
+            padding: 8px 10px;
         }
         .terminal-info-table td.label-col {
             background: #f1f5f9;
@@ -137,7 +138,6 @@
             outline: none;
         }
 
-        /* 下部ボタン群 (実機そっくりな赤茶系) */
         .terminal-bottom-buttons {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -157,22 +157,21 @@
         }
         .bottom-action-btn:hover { background: #942b2b; }
 
-        /* 各種ツール・サブ画面用 */
         .tool-view { display: none; }
         .tool-view.active { display: block; }
         
         .sub-panel {
             background: #ffffff;
-            padding: 15px;
+            padding: 12px;
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
         .back-btn {
             background: #475569;
             color: white;
             border: none;
-            padding: 6px 14px;
+            padding: 8px 14px;
             border-radius: 4px;
             font-size: 0.85rem;
             cursor: pointer;
@@ -180,13 +179,23 @@
         }
         .back-btn:hover { background: #334155; }
 
-        /* 伝票発行・店舗一覧用グリッド */
-        .main-grid { display: grid; grid-template-columns: 260px 1fr; gap: 15px; }
-        @media(max-width: 768px) { .main-grid { grid-template-columns: 1fr; } }
+        .main-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        @media(min-width: 768px) { .main-grid { grid-template-columns: 300px 1fr; } }
         
+        /* 都道府県アコーディオン用デザイン */
+        .pref-group { margin-bottom: 6px; border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden; background: #f8fafc; }
+        .pref-header {
+            padding: 10px 12px; font-weight: bold; font-size: 0.9rem; color: #0f172a;
+            cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+            background: #e2e8f0; user-select: none;
+        }
+        .pref-header:hover { background: #cbd5e1; }
+        .pref-stores-container { display: none; padding: 6px; background: #ffffff; }
+        .pref-stores-container.open { display: block; }
+
         .store-item {
-            padding: 6px 10px; margin-bottom: 4px; border-radius: 4px; cursor: pointer;
-            display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; background: #f8fafc; border: 1px solid var(--border-color);
+            padding: 8px 10px; margin-bottom: 4px; border-radius: 4px; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; background: #f8fafc; border: 1px solid #e2e8f0;
         }
         .store-item:hover { background: #f1f5f9; }
         .store-item.active { background: #0f172a; color: white; font-weight: bold; border-color: #0f172a; }
@@ -195,34 +204,34 @@
 
         .input-control-box { background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 10px; font-size: 0.85rem; }
         .item-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; font-size: 0.85rem; }
-        .item-table th, .item-table td { border: 1px solid var(--border-color); padding: 4px; text-align: center; }
+        .item-table th, .item-table td { border: 1px solid var(--border-color); padding: 6px 4px; text-align: center; }
         .item-table th { background: #f1f5f9; }
         .item-table input { width: 90%; text-align: center; border: none; background: transparent; font-family: inherit; }
 
-        .preview-container { background: white; padding: 20px; border-radius: 6px; border: 1px solid var(--border-color); }
+        .preview-container { background: white; padding: 15px; border-radius: 6px; border: 1px solid var(--border-color); overflow-x: auto; }
         .mode-a4 { width: 100%; max-width: 650px; margin: 0 auto; font-family: monospace; font-size: 0.85rem; }
-        .mode-mpb20 { width: 360px; margin: 0 auto; font-family: monospace; font-size: 0.75rem; }
+        .mode-mpb20 { width: 100%; max-width: 360px; margin: 0 auto; font-family: monospace; font-size: 0.75rem; }
         .denpyo-header { border-bottom: 2px solid #000; padding-bottom: 6px; margin-bottom: 10px; }
         .denpyo-title { font-size: 1.2rem; font-weight: bold; text-align: center; letter-spacing: 3px; margin-bottom: 6px; }
         table.denpyo-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
-        table.denpyo-table th, table.denpyo-table td { border: 1px solid #000; padding: 3px; text-align: center; font-size: 0.75rem; }
+        table.denpyo-table th, table.denpyo-table td { border: 1px solid #000; padding: 4px 2px; text-align: center; font-size: 0.75rem; }
         table.denpyo-table th { background: #eee; }
 
-        /* 商品選択・追加モーダル */
-        #itemSelectModal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 15000; }
-        .modal-box { background: white; padding: 20px; border-radius: 8px; width: 450px; max-width: 90vw; max-height: 85vh; overflow-y: auto; border: 2px solid #0f172a; }
+        /* 商品選択モーダル */
+        #itemSelectModal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 15000; padding: 10px; }
+        .modal-box { background: white; padding: 15px; border-radius: 8px; width: 100%; max-width: 450px; max-height: 85vh; overflow-y: auto; border: 2px solid #0f172a; }
         
         /* テンキーモーダル */
-        #numpadModal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 20000; }
-        .numpad-content { background: white; padding: 20px; border-radius: 8px; width: 240px; border: 2px solid #0f172a; text-align: center; }
-        .numpad-screen { width: 100%; height: 36px; font-size: 1.3rem; text-align: right; margin-bottom: 10px; padding: 4px 8px; box-sizing: border-box; border-radius: 4px; border: 1px solid var(--border-color); background: #f8fafc; font-family: inherit; }
-        .numpad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-        .numpad-grid button { padding: 12px; font-size: 1.1rem; background: #fff; color: #0f172a; border: 1px solid var(--border-color); border-radius: 4px; font-weight: bold; }
+        #numpadModal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 20000; padding: 10px; }
+        .numpad-content { background: white; padding: 15px; border-radius: 8px; width: 100%; max-width: 260px; border: 2px solid #0f172a; text-align: center; }
+        .numpad-screen { width: 100%; height: 40px; font-size: 1.4rem; text-align: right; margin-bottom: 10px; padding: 4px 8px; box-sizing: border-box; border-radius: 4px; border: 1px solid var(--border-color); background: #f8fafc; font-family: inherit; }
+        .numpad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .numpad-grid button { padding: 14px; font-size: 1.2rem; background: #fff; color: #0f172a; border: 1px solid var(--border-color); border-radius: 4px; font-weight: bold; }
         .numpad-grid button:hover { background: #f1f5f9; }
 
         /* 印刷選択モーダル */
-        #printModal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 10000; }
-        .modal-btn { display: block; width: 100%; padding: 10px; margin: 8px 0; font-size: 0.95rem; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        #printModal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 10000; padding: 10px; }
+        .modal-btn { display: block; width: 100%; padding: 12px; margin: 8px 0; font-size: 1rem; border-radius: 4px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -236,41 +245,41 @@
     <!-- 商品選択・追加モーダル -->
     <div id="itemSelectModal">
         <div class="modal-box">
-            <h3 style="margin-top:0; color:#0f172a;">📦 商品マスタから選択または新規登録</h3>
+            <h3 style="margin-top:0; color:#0f172a; font-size:1rem;">📦 商品マスタから選択または新規登録</h3>
             <div style="margin-bottom:10px;">
-                <input type="text" id="itemSearchInput" placeholder="🔍 商品名や価格で検索..." oninput="filterMasterItems()" style="width:100%; padding:6px; box-sizing:border-box; border:1px solid #cbd5e1; border-radius:4px;">
+                <input type="text" id="itemSearchInput" placeholder="🔍 商品名や価格で検索..." oninput="filterMasterItems()" style="width:100%; padding:8px; box-sizing:border-box; border:1px solid #cbd5e1; border-radius:4px; font-size:1rem;">
             </div>
-            <div id="masterListContainer" style="max-height:200px; overflow-y:auto; border:1px solid #cbd5e1; border-radius:4px; margin-bottom:15px; background:#f8fafc;"></div>
+            <div id="masterListContainer" style="max-height:180px; overflow-y:auto; border:1px solid #cbd5e1; border-radius:4px; margin-bottom:15px; background:#f8fafc;"></div>
             
             <hr style="border:0; border-top:1px dashed #cbd5e1; margin:10px 0;">
             
             <h4 style="margin:5px 0; color:#0f172a; font-size:0.9rem;">＋ 新規商品を登録して追加</h4>
             <div style="display:flex; gap:6px; margin-bottom:6px;">
-                <input type="text" id="newMasterCode" placeholder="コード(例:003800)" style="flex:1; padding:6px; font-size:0.85rem;">
-                <input type="text" id="newMasterName" placeholder="品名(例:衣類380円売)" style="flex:2; padding:6px; font-size:0.85rem;">
+                <input type="text" id="newMasterCode" placeholder="コード" style="flex:1; padding:8px; font-size:0.9rem;">
+                <input type="text" id="newMasterName" placeholder="品名" style="flex:2; padding:8px; font-size:0.9rem;">
             </div>
             <div style="display:flex; gap:6px; margin-bottom:10px;">
-                <select id="newMasterPrice" style="flex:1; padding:6px; font-size:0.85rem;">
+                <select id="newMasterPrice" style="flex:1; padding:8px; font-size:0.9rem;">
                     <option value="380">380円</option><option value="500">500円</option><option value="700">700円</option>
                     <option value="1000" selected>1,000円</option><option value="1200">1,200円</option><option value="1500">1,500円</option>
-                    <option value="1900">1,900円</option><option value="2000">2,000円</option><option value="2900">2,900円</option>
-                    <option value="3000">3,000円</option><option value="3900">3,900円</option><option value="4900">4,900円</option>
+                    <option value="1900">1,900円 (特29)</option><option value="2000">2,000円</option><option value="2900">2,900円 (特49)</option>
+                    <option value="3000">3,000円</option><option value="3900">3,900円 (特39/59/69/79)</option><option value="4900">4,900円</option>
                     <option value="5900">5,900円</option><option value="6900">6,900円</option><option value="7900">7,900円</option>
                     <option value="8900">8,900円</option><option value="9900">9,900円</option><option value="11900">11,900円</option>
                     <option value="12900">12,900円</option><option value="14900">14,900円</option><option value="17900">17,900円</option>
                     <option value="19900">19,900円</option><option value="24900">24,900円</option><option value="27900">27,900円</option>
                     <option value="29900">29,900円</option>
                 </select>
-                <button onclick="addNewMasterAndSelect()" style="background:#16a34a; color:white; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">登録して追加</button>
+                <button onclick="addNewMasterAndSelect()" style="background:#16a34a; color:white; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">追加</button>
             </div>
-            <button onclick="closeItemSelectModal()" style="width:100%; background:#64748b; color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer;">キャンセル</button>
+            <button onclick="closeItemSelectModal()" style="width:100%; background:#64748b; color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer;">キャンセル</button>
         </div>
     </div>
 
     <!-- テンキーモーダル -->
     <div id="numpadModal">
         <div class="numpad-content">
-            <div style="font-size: 0.85rem; font-weight: bold; color: #0f172a; margin-bottom: 6px;" id="numpadTitle">数値を入力</div>
+            <div style="font-size: 0.9rem; font-weight: bold; color: #0f172a; margin-bottom: 8px;" id="numpadTitle">数値を入力</div>
             <input type="text" id="numpadScreen" class="numpad-screen" readonly value="0">
             <div class="numpad-grid">
                 <button onclick="npPress('7')">7</button>
@@ -286,9 +295,9 @@
                 <button onclick="npClear()">C</button>
                 <button onclick="npBack()">←</button>
             </div>
-            <div style="display:flex; gap:6px; margin-top:10px;">
-                <button onclick="npClose()" style="flex:1; background:#64748b; color:white; padding:8px; font-size:0.85rem;">キャンセル</button>
-                <button onclick="npConfirm()" style="flex:1; background:#0f172a; color:white; padding:8px; font-size:0.85rem;">確定</button>
+            <div style="display:flex; gap:8px; margin-top:12px;">
+                <button onclick="npClose()" style="flex:1; background:#64748b; color:white; padding:10px; font-size:0.9rem; border:none; border-radius:4px;">キャンセル</button>
+                <button onclick="npConfirm()" style="flex:1; background:#0f172a; color:white; padding:10px; font-size:0.9rem; border:none; border-radius:4px;">確定</button>
             </div>
         </div>
     </div>
@@ -379,19 +388,19 @@
 
         <div class="main-grid">
             <div class="sub-panel">
-                <h3 style="margin-top:0; color:#0f172a; font-size:0.95rem;">🏪 店舗選択</h3>
-                <input type="text" id="searchInput" class="search-box" placeholder="🔍 店舗名や住所検索..." oninput="filterStores()" style="width:100%; box-sizing:border-box; padding:6px; margin-bottom:8px; border:1px solid #cbd5e1; border-radius:4px;">
-                <button style="width:100%; margin-bottom:10px; padding:6px; font-size:0.85rem;" onclick="openNewStoreForm()">＋ 新規店舗登録</button>
+                <h3 style="margin-top:0; color:#0f172a; font-size:0.95rem;">🏪 都道府県・店舗選択</h3>
+                <input type="text" id="searchInput" class="search-box" placeholder="🔍 店舗名や住所検索..." oninput="filterStores()" style="width:100%; box-sizing:border-box; padding:8px; margin-bottom:8px; border:1px solid #cbd5e1; border-radius:4px; font-size:0.9rem;">
+                <button style="width:100%; margin-bottom:10px; padding:8px; font-size:0.85rem;" onclick="openNewStoreForm()">＋ 新規店舗登録</button>
                 <div id="storeListContainer" style="max-height:55vh; overflow-y:auto;"></div>
             </div>
 
             <div class="sub-panel">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <h3 id="selectedStoreName" style="margin:0; color:#0f172a; font-size:1rem;">店舗を選択</h3>
-                    <div>
-                        <button onclick="switchTab('nohin')" id="btnTabNohin" style="font-size:0.8rem; padding:4px 8px;">委託納品書</button>
-                        <button onclick="switchTab('henpin')" id="btnTabHenpin" style="font-size:0.8rem; padding:4px 8px;">返品伝票</button>
-                        <button onclick="switchTab('seikyu')" id="btnTabSeikyu" style="font-size:0.8rem; padding:4px 8px;">請求書</button>
+                    <h3 id="selectedStoreName" style="margin:0; color:#0f172a; font-size:0.95rem;">店舗を選択してください</h3>
+                    <div style="display:flex; gap:4px;">
+                        <button onclick="switchTab('nohin')" id="btnTabNohin" style="font-size:0.75rem; padding:4px 6px;">委託納品書</button>
+                        <button onclick="switchTab('henpin')" id="btnTabHenpin" style="font-size:0.75rem; padding:4px 6px;">返品伝票</button>
+                        <button onclick="switchTab('seikyu')" id="btnTabSeikyu" style="font-size:0.75rem; padding:4px 6px;">請求書</button>
                     </div>
                 </div>
 
@@ -399,13 +408,13 @@
                     <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items:center; flex-wrap:wrap; gap:5px;">
                         <div>
                             <label>発行日:</label>
-                            <input type="text" id="inputDate" value="26/10/26 21:30" style="width:110px;" oninput="renderPreview()">
+                            <input type="text" id="inputDate" value="26/10/26 21:30" style="width:100px; padding:4px;" oninput="renderPreview()">
                             <label>伝票No:</label>
-                            <input type="text" id="inputDenpyoNo" value="0726100111" style="width:90px;" oninput="renderPreview()">
+                            <input type="text" id="inputDenpyoNo" value="0726100111" style="width:85px; padding:4px;" oninput="renderPreview()">
                         </div>
                         <div>
                             <label style="font-weight:bold;">掛率:</label>
-                            <select id="selectRate" onchange="changeStoreRate(this.value)" style="font-weight:bold; color:#0f172a; border:1px solid #cbd5e1; padding:3px; border-radius:4px;">
+                            <select id="selectRate" onchange="changeStoreRate(this.value)" style="font-weight:bold; color:#0f172a; border:1px solid #cbd5e1; padding:4px; border-radius:4px;">
                                 <option value="50TAX">50TAX</option>
                                 <option value="55TAX">55TAX</option>
                                 <option value="60TAX" selected>60TAX</option>
@@ -421,20 +430,25 @@
                         </thead>
                         <tbody id="itemRowsBody"></tbody>
                     </table>
-                    <button onclick="openItemSelectModal()" style="font-size:0.75rem; padding:5px 12px; background:#16a34a; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">＋ リストから商品を選択・追加</button>
+                    <button onclick="openItemSelectModal()" style="font-size:0.75rem; padding:6px 12px; background:#16a34a; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer; width:100%;">＋ リストから商品を選択・追加</button>
                 </div>
 
-                <div id="previewArea" class="preview-container mode-a4"></div>
+                <!-- 伝票下部の無地空欄入力欄（表記名なし） -->
+                <div class="input-control-box" style="margin-top:10px;">
+                    <textarea id="memoInput" rows="2" placeholder="自由記入欄（伝票下部に出力されます）" style="width:100%; padding:6px; font-size:0.85rem; box-sizing:border-box; border:1px solid #cbd5e1; border-radius:4px;" oninput="renderPreview()"></textarea>
+                </div>
+
+                <div id="previewArea" class="preview-container mode-a4" style="margin-top:10px;"></div>
 
                 <div class="sub-panel" id="storeEditSection" style="display:none; margin-top:10px;">
                     <h4 style="margin-top:0; color:#0f172a; font-size:0.9rem;" id="storeEditTitle">店舗情報の編集・登録</h4>
                     <input type="hidden" id="editIndex">
-                    <div style="margin-bottom:6px;"><label>店舗名</label><input type="text" id="editName" style="width:100%; box-sizing:border-box;"></div>
-                    <div style="margin-bottom:6px;"><label>住所</label><input type="text" id="editAddress" style="width:100%; box-sizing:border-box;"></div>
-                    <div style="margin-bottom:6px;"><label>電話番号</label><input type="text" id="editTel" style="width:100%; box-sizing:border-box;"></div>
-                    <div style="margin-bottom:6px;"><label>郵便番号</label><input type="text" id="editZip" style="width:100%; box-sizing:border-box;"></div>
-                    <div style="margin-bottom:6px;"><label>掛率設定</label><input type="text" id="editRate" value="60TAX" style="width:100%; box-sizing:border-box;"></div>
-                    <button onclick="saveStoreEdit()" style="margin-top:6px; width:100%; padding:6px; font-size:0.85rem; background:#0f172a; color:white;">💾 保存する</button>
+                    <div style="margin-bottom:6px;"><label>店舗名</label><input type="text" id="editName" style="width:100%; box-sizing:border-box; padding:6px;"></div>
+                    <div style="margin-bottom:6px;"><label>住所</label><input type="text" id="editAddress" style="width:100%; box-sizing:border-box; padding:6px;"></div>
+                    <div style="margin-bottom:6px;"><label>電話番号</label><input type="text" id="editTel" style="width:100%; box-sizing:border-box; padding:6px;"></div>
+                    <div style="margin-bottom:6px;"><label>郵便番号</label><input type="text" id="editZip" style="width:100%; box-sizing:border-box; padding:6px;"></div>
+                    <div style="margin-bottom:6px;"><label>掛率設定</label><input type="text" id="editRate" value="60TAX" style="width:100%; box-sizing:border-box; padding:6px;"></div>
+                    <button onclick="saveStoreEdit()" style="margin-top:6px; width:100%; padding:8px; font-size:0.85rem; background:#0f172a; color:white; border:none; border-radius:4px;">💾 保存する</button>
                 </div>
             </div>
         </div>
@@ -449,14 +463,14 @@
             <div class="input-control-box">
                 <div style="margin-bottom:8px;"><label>商品コード / バーコードスキャン:</label></div>
                 <div style="display:flex; gap:8px;">
-                    <input type="text" id="tanaCode" placeholder="例: 001000" style="flex:1; padding:6px;">
-                    <button onclick="alert('バーコードデータを読み込みました')" style="padding:6px 12px; background:#0f172a; color:white; border:none; border-radius:4px;">追加</button>
+                    <input type="text" id="tanaCode" placeholder="例: 001000" style="flex:1; padding:8px;">
+                    <button onclick="alert('バーコードデータを読み込みました')" style="padding:8px 12px; background:#0f172a; color:white; border:none; border-radius:4px;">追加</button>
                 </div>
             </div>
             <table class="item-table">
                 <thead><tr><th>コード</th><th>品名</th><th>実査数</th><th>操作</th></tr></thead>
                 <tbody>
-                    <tr><td>001000</td><td>衣類 1,000円売</td><td><input type="text" value="0" style="width:60px; text-align:center;"></td><td><button style="background:#991b1b; color:white; border:none; padding:2px 6px;">削除</button></td></tr>
+                    <tr><td>001000</td><td>衣類 1,000円売</td><td><input type="text" value="0" style="width:60px; text-align:center;"></td><td><button style="background:#991b1b; color:white; border:none; padding:4px 8px;">削除</button></td></tr>
                 </tbody>
             </table>
             <button onclick="alert('棚卸データを正常に送信しました！')" style="width:100%; padding:10px; background:#16a34a; color:white; border:none; border-radius:4px; font-weight:bold; margin-top:10px;">💾 棚卸データを送信・確定する</button>
@@ -469,10 +483,10 @@
         <div class="sub-panel" style="max-width:500px; margin:20px auto; text-align:center;">
             <h3>🛠️ その他のツール選択</h3>
             <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;">
-                <button onclick="switchApp('history')" style="padding:12px; font-size:1rem; background:#0f172a; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">📜 発行・操作履歴の確認</button>
-                <button onclick="switchApp('calendar')" style="padding:12px; font-size:1rem;">📅 スケジュール・カレンダー</button>
-                <button onclick="switchApp('memo')" style="padding:12px; font-size:1rem;">📝 クイックメモ書き</button>
-                <button onclick="switchApp('calc')" style="padding:12px; font-size:1rem;">🔢 ミニ電卓ツール</button>
+                <button onclick="switchApp('history')" style="padding:14px; font-size:1rem; background:#0f172a; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">📜 発行・操作履歴の確認</button>
+                <button onclick="switchApp('calendar')" style="padding:14px; font-size:1rem;">📅 スケジュール・カレンダー</button>
+                <button onclick="switchApp('memo')" style="padding:14px; font-size:1rem;">📝 クイックメモ書き</button>
+                <button onclick="switchApp('calc')" style="padding:14px; font-size:1rem;">🔢 ミニ電卓ツール</button>
             </div>
         </div>
     </div>
@@ -482,7 +496,7 @@
         <button class="back-btn" onclick="switchApp('other')">⬅ その他メニューに戻る</button>
         <div class="sub-panel" style="max-width:700px; margin:20px auto;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <h3 style="margin:0; color:#0f172a;">📜 ローカル保存されたアクション履歴</h3>
+                <h3 style="margin:0; color:#0f172a; font-size:0.95rem;">📜 ローカル保存されたアクション履歴</h3>
                 <button onclick="clearActionLogs()" style="background:#b91c1c; color:white; border:none; padding:5px 10px; font-size:0.8rem; border-radius:4px;">履歴をすべて消去</button>
             </div>
             <p style="font-size:0.85rem; color:#64748b;">この端末（ブラウザ）に記憶された伝票発行などの操作ログ一覧です。</p>
@@ -507,7 +521,7 @@
         <button class="back-btn" onclick="switchApp('other')">⬅ その他メニューに戻る</button>
         <div class="sub-panel">
             <h3 style="margin-top:0; color:#0f172a; font-size:0.95rem;">📝 クイックメモ書き</h3>
-            <textarea id="quickMemo" style="width:100%; height:250px; padding:10px; box-sizing:border-box;" placeholder="メモを入力..." oninput="saveMemo()"></textarea>
+            <textarea id="quickMemo" style="width:100%; height:250px; padding:10px; box-sizing:border-box; font-size:1rem;" placeholder="メモを入力..." oninput="saveMemo()"></textarea>
         </div>
     </div>
 
@@ -517,25 +531,25 @@
         <div class="sub-panel" style="display:flex; justify-content:center;">
             <div style="max-width:280px; width:100%; background:#f8fafc; padding:15px; border-radius:8px; border:1px solid var(--border-color); text-align:center;">
                 <h3 style="margin-top:0; color:#0f172a; font-size:1rem;">🔢 ミニ電卓</h3>
-                <input type="text" id="calcScreen" style="width:100%; height:36px; font-size:1.4rem; text-align:right; margin-bottom:12px; padding:4px 8px; box-sizing:border-box; background:white;" readonly value="0">
+                <input type="text" id="calcScreen" style="width:100%; height:40px; font-size:1.4rem; text-align:right; margin-bottom:12px; padding:4px 8px; box-sizing:border-box; background:white;" readonly value="0">
                 <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:6px;">
-                    <button onclick="calcClear()">C</button>
-                    <button onclick="calcAppend('/')">÷</button>
-                    <button onclick="calcAppend('*')">×</button>
-                    <button onclick="calcAppend('-')">-</button>
-                    <button onclick="calcAppend('7')">7</button>
-                    <button onclick="calcAppend('8')">8</button>
-                    <button onclick="calcAppend('9')">9</button>
-                    <button onclick="calcAppend('+')">+</button>
-                    <button onclick="calcAppend('4')">4</button>
-                    <button onclick="calcAppend('5')">5</button>
-                    <button onclick="calcAppend('6')">6</button>
-                    <button onclick="calcEqual()" style="grid-row: span 2; background:#0f172a; color:white;">=</button>
-                    <button onclick="calcAppend('1')">1</button>
-                    <button onclick="calcAppend('2')">2</button>
-                    <button onclick="calcAppend('3')">3</button>
-                    <button onclick="calcAppend('0')" style="grid-column: span 2;">0</button>
-                    <button onclick="calcAppend('.')">.</button>
+                    <button onclick="calcClear()" style="padding:12px; font-size:1rem;">C</button>
+                    <button onclick="calcAppend('/')" style="padding:12px; font-size:1rem;">÷</button>
+                    <button onclick="calcAppend('*')" style="padding:12px; font-size:1rem;">×</button>
+                    <button onclick="calcAppend('-')" style="padding:12px; font-size:1rem;">-</button>
+                    <button onclick="calcAppend('7')" style="padding:12px; font-size:1rem;">7</button>
+                    <button onclick="calcAppend('8')" style="padding:12px; font-size:1rem;">8</button>
+                    <button onclick="calcAppend('9')" style="padding:12px; font-size:1rem;">9</button>
+                    <button onclick="calcAppend('+')" style="padding:12px; font-size:1rem;">+</button>
+                    <button onclick="calcAppend('4')" style="padding:12px; font-size:1rem;">4</button>
+                    <button onclick="calcAppend('5')" style="padding:12px; font-size:1rem;">5</button>
+                    <button onclick="calcAppend('6')" style="padding:12px; font-size:1rem;">6</button>
+                    <button onclick="calcEqual()" style="grid-row: span 2; background:#0f172a; color:white; padding:12px; font-size:1rem;">=</button>
+                    <button onclick="calcAppend('1')" style="padding:12px; font-size:1rem;">1</button>
+                    <button onclick="calcAppend('2')" style="padding:12px; font-size:1rem;">2</button>
+                    <button onclick="calcAppend('3')" style="padding:12px; font-size:1rem;">3</button>
+                    <button onclick="calcAppend('0')" style="grid-column: span 2; padding:12px; font-size:1rem;">0</button>
+                    <button onclick="calcAppend('.')" style="padding:12px; font-size:1rem;">.</button>
                 </div>
             </div>
         </div>
@@ -628,11 +642,11 @@ let masterItems = [
     { code: "001000", name: "衣類 1,000円売", price: 1000 },
     { code: "001200", name: "衣類 1,200円売", price: 1200 },
     { code: "001500", name: "衣類 1,500円売", price: 1500 },
-    { code: "001900", name: "衣類 1,900円売", price: 1900 },
+    { code: "001900", name: "衣類 1,900円売 (特29)", price: 1900 },
     { code: "002000", name: "衣類 2,000円売", price: 2000 },
-    { code: "002900", name: "衣類 2,900円売", price: 2900 },
+    { code: "002900", name: "衣類 2,900円売 (特49)", price: 2900 },
     { code: "003000", name: "衣類 3,000円売", price: 3000 },
-    { code: "003900", name: "衣類 3,900円売", price: 3900 },
+    { code: "003900", name: "衣類 3,900円売 (特39/59/69/79)", price: 3900 },
     { code: "004900", name: "衣類 4,900円売", price: 4900 },
     { code: "005900", name: "衣類 5,900円売", price: 5900 },
     { code: "006900", name: "衣類 6,900円売", price: 6900 },
@@ -653,7 +667,6 @@ let currentStoreIndex = 0;
 let currentTab = 'nohin';
 let nohinItems = [];
 let henpinItems = [];
-
 let activeInputCallback = null;
 
 window.onload = function() {
@@ -664,9 +677,7 @@ window.onload = function() {
     if (savedMemo) document.getElementById('quickMemo').value = savedMemo;
 };
 
-function clickSeisanNav() {
-    switchApp('seisan-menu');
-}
+function clickSeisanNav() { switchApp('seisan-menu'); }
 
 function switchMainTab(tabName) {
     document.querySelectorAll('.top-tab-btn').forEach(b => b.classList.remove('active-tab'));
@@ -688,17 +699,9 @@ function switchMainTab(tabName) {
     }
 }
 
-function clickShokai() {
-    openDenpyoMode('nohin');
-}
-
-function clickTanaoroshi() {
-    switchApp('tanaoroshi');
-}
-
-function openOtherMenu() {
-    switchApp('other');
-}
+function clickShokai() { openDenpyoMode('nohin'); }
+function clickTanaoroshi() { switchApp('tanaoroshi'); }
+function openOtherMenu() { switchApp('other'); }
 
 function openDenpyoMode(mode) {
     currentTab = mode;
@@ -710,14 +713,10 @@ function openDenpyoMode(mode) {
 function switchApp(appId) {
     document.querySelectorAll('.tool-view').forEach(v => v.classList.remove('active'));
     document.getElementById('app-' + appId).classList.add('active');
-    if(appId === 'history') {
-        renderHistoryList();
-    }
+    if(appId === 'history') { renderHistoryList(); }
 }
 
-function goHome() {
-    switchApp('home');
-}
+function goHome() { switchApp('home'); }
 
 function getPrefecture(address) {
     const prefs = ['茨城県', '岩手県', '熊本県', '群馬県', '埼玉県', '新潟県', '千葉県', '栃木県', '富山県', '福島県', '兵庫県'];
@@ -729,6 +728,7 @@ function renderStoreList(storeArray) {
     const container = document.getElementById('storeListContainer');
     container.innerHTML = '';
     const grouped = {};
+    
     storeArray.forEach(store => {
         const pref = getPrefecture(store.address);
         store._originalIndex = stores.indexOf(store);
@@ -737,22 +737,42 @@ function renderStoreList(storeArray) {
     });
 
     for (const pref in grouped) {
-        const prefDiv = document.createElement('div');
-        prefDiv.style.marginBottom = "8px";
-        prefDiv.innerHTML = `<div style="font-weight:bold; font-size:0.8rem; color:#0f172a; border-bottom:1px dashed #cbd5e1; padding-bottom:2px; margin-bottom:4px;">📍 ${pref}</div>`;
+        const prefGroup = document.createElement('div');
+        prefGroup.className = 'pref-group';
+        
+        const header = document.createElement('div');
+        header.className = 'pref-header';
+        header.innerHTML = `<span>📍 ${pref} (${grouped[pref].length}店舗)</span> <span>▼</span>`;
+        
+        const storesContainer = document.createElement('div');
+        storesContainer.className = 'pref-stores-container';
+        
+        if (grouped[pref].some(s => s._originalIndex === currentStoreIndex)) {
+            storesContainer.classList.add('open');
+            header.innerHTML = `<span>📍 ${pref} (${grouped[pref].length}店舗)</span> <span>▲</span>`;
+        }
+
+        header.onclick = function() {
+            storesContainer.classList.toggle('open');
+            header.innerHTML = `<span>📍 ${pref} (${grouped[pref].length}店舗)</span> <span>${storesContainer.classList.contains('open') ? '▲' : '▼'}</span>`;
+        };
+
         grouped[pref].forEach(store => {
             const item = document.createElement('div');
             item.className = `store-item ${store._originalIndex === currentStoreIndex ? 'active' : ''}`;
             item.innerHTML = `
-                <span onclick="selectStore(${store._originalIndex})" style="flex-grow:1; cursor:pointer;">${store.name}</span>
+                <span onclick="selectStore(${store._originalIndex}); event.stopPropagation();" style="flex-grow:1; cursor:pointer;">${store.name}</span>
                 <div class="store-actions">
                     <button onclick="editStore(${store._originalIndex}); event.stopPropagation();">編集</button>
                     <button style="background:#991b1b; color:white; border:none;" onclick="deleteStore(${store._originalIndex}); event.stopPropagation();">削除</button>
                 </div>
             `;
-            prefDiv.appendChild(item);
+            storesContainer.appendChild(item);
         });
-        container.appendChild(prefDiv);
+
+        prefGroup.appendChild(header);
+        prefGroup.appendChild(storesContainer);
+        container.appendChild(prefGroup);
     }
 }
 
@@ -787,10 +807,7 @@ function openItemSelectModal() {
     document.getElementById('itemSelectModal').style.display = 'flex';
     renderMasterList(masterItems);
 }
-
-function closeItemSelectModal() {
-    document.getElementById('itemSelectModal').style.display = 'none';
-}
+function closeItemSelectModal() { document.getElementById('itemSelectModal').style.display = 'none'; }
 
 function renderMasterList(items) {
     const container = document.getElementById('masterListContainer');
@@ -828,10 +845,7 @@ function addNewMasterAndSelect() {
     const name = document.getElementById('newMasterName').value.trim();
     const price = parseInt(document.getElementById('newMasterPrice').value, 10);
     
-    if(!code || !name) {
-        alert("商品コードと品名を入力してください。");
-        return;
-    }
+    if(!code || !name) { alert("商品コードと品名を入力してください。"); return; }
     const newItem = { code, name, price };
     masterItems.push(newItem);
     selectMasterItem(newItem);
@@ -883,7 +897,7 @@ function renderItemTable() {
     const targetItems = (currentTab === 'henpin') ? henpinItems : nohinItems;
     
     if(targetItems.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="padding:15px; color:#64748b; font-size:0.85rem;">商品が追加されていません（在庫ゼロ）下のボタンから選択してください。</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="padding:15px; color:#64748b; font-size:0.85rem;">商品が追加されていません。下のボタンから選択してください。</td></tr>`;
         renderPreview();
         return;
     }
@@ -925,6 +939,7 @@ function renderPreview() {
     const noVal = document.getElementById('inputDenpyoNo').value;
     const currentRateStr = document.getElementById('selectRate').value;
     const multiplier = getRateMultiplier();
+    const memoVal = document.getElementById('memoInput').value;
     
     if (currentTab === 'nohin') {
         let totalAmount = 0;
@@ -954,7 +969,10 @@ function renderPreview() {
                 ${rowsHtml || '<tr><td colspan="5">明細なし</td></tr>'}
                 <tr><td colspan="4" style="text-align:right; font-weight:bold;">計</td><td>${totalAmount.toLocaleString()}</td></tr>
             </table>
-            <div style="font-size:0.75rem; margin-top:10px;">
+            <div style="margin-top:10px; padding:6px; border:1px solid #000; font-size:0.75rem; min-height:40px; background:#fff;">
+                ${memoVal ? memoVal.replace(/\n/g, '<br>') : ''}
+            </div>
+            <div style="font-size:0.75rem; margin-top:8px;">
                 株式会社ベルアビエ デコレ事業部 | 福島県田村市船引町船引字下扇田52<br>
                 TEL 0247-81-2215 / 振替: 02210-7-78715
             </div>
@@ -987,7 +1005,10 @@ function renderPreview() {
                 ${rowsHtml || '<tr><td colspan="5">明細なし</td></tr>'}
                 <tr><td colspan="4" style="text-align:right; font-weight:bold;">返品合計</td><td>-${totalAmount.toLocaleString()}</td></tr>
             </table>
-            <div style="font-size:0.75rem; margin-top:10px;">
+            <div style="margin-top:10px; padding:6px; border:1px solid #000; font-size:0.75rem; min-height:40px; background:#fff;">
+                ${memoVal ? memoVal.replace(/\n/g, '<br>') : ''}
+            </div>
+            <div style="font-size:0.75rem; margin-top:8px;">
                 株式会社ベルアビエ デコレ事業部 (返品処理分)<br>
                 TEL 0247-81-2215
             </div>
@@ -1010,7 +1031,10 @@ function renderPreview() {
                 <tr><td>001000</td><td>衣類 1,000円売</td><td>0</td><td>0</td><td>0</td><td>600</td><td>0</td></tr>
                 <tr><td colspan="6" style="text-align:right; font-weight:bold;">合計金額</td><td>0</td></tr>
             </table>
-            <div style="font-size:0.75rem; margin-top:10px;">
+            <div style="margin-top:10px; padding:6px; border:1px solid #000; font-size:0.75rem; min-height:40px; background:#fff;">
+                ${memoVal ? memoVal.replace(/\n/g, '<br>') : ''}
+            </div>
+            <div style="font-size:0.75rem; margin-top:8px;">
                 前回残高: 0 | お買上額: 0 | ご請求額: 0<br>
                 <strong>請求残高: 0 円</strong>
             </div>
