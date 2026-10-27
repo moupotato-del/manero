@@ -469,7 +469,7 @@
                     <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items:center; flex-wrap:wrap; gap:5px;">
                         <div>
                             <label>発行日:</label>
-                            <input type="text" id="inputDate" value="26/10/27 05:39" style="width:100px; padding:4px;" oninput="renderPreview()">
+                            <input type="text" id="inputDate" value="26/10/27 05:46" style="width:100px; padding:4px;" oninput="renderPreview()">
                             <label>伝票No:</label>
                             <input type="text" id="inputDenpyoNo" value="0726100111" style="width:85px; padding:4px;" oninput="renderPreview()">
                         </div>
@@ -484,7 +484,7 @@
                             </select>
                         </div>
                     </div>
-                    <div style="font-size:0.8rem; font-weight:bold; margin-bottom:4px; color:#0f172a;" id="tableTitleLabel">明細データ (在庫ゼロから選択・追加)</div>
+                    <div style="font-size:0.8rem; font-weight:bold; margin-bottom:4px; color:#0f172a;" id="tableTitleLabel">明細データ</div>
                     <table class="item-table" id="itemTable">
                         <thead id="itemTableHead">
                             <tr><th>コード</th><th>品名</th><th>数量</th><th>定価(円)</th><th>単価</th><th>操作</th></tr>
@@ -849,12 +849,12 @@ function renderStoreList(storeArray) {
         
         if (storesInPref.some(s => s._originalIndex === currentStoreIndex)) {
             storesContainer.classList.add('open');
-            header.innerHTML = `<span>📍 ${pref} (${storesInPref.length}店舗)</span> <span>▲</span>`;
+            header.innerHTML = `📍 ${pref} (${storesInPref.length}店舗) <span>▲</span>`;
         }
 
         header.onclick = function() {
             storesContainer.classList.toggle('open');
-            header.innerHTML = `<span>📍 ${pref} (${storesInPref.length}店舗)</span> <span>${storesContainer.classList.contains('open') ? '▲' : '▼'}</span>`;
+            header.innerHTML = `📍 ${pref} (${storesInPref.length}店舗) <span>${storesContainer.classList.contains('open') ? '▲' : '▼'}</span>`;
         };
 
         storesInPref.forEach(store => {
@@ -934,8 +934,9 @@ function filterMasterItems() {
 }
 
 function selectMasterItem(m) {
+    if (currentTab === 'seikyu') return;
     const targetList = (currentTab === 'henpin') ? henpinItems : nohinItems;
-    targetList.push({ code: m.code, name: m.name, qty: 0, listPrice: m.price });
+    targetList.push({ code: m.code, name: m.name, qty: 1, listPrice: m.price });
     closeItemSelectModal();
     renderItemTable();
 }
@@ -980,12 +981,18 @@ function npConfirm() {
 }
 
 function highlightActiveTabButton() {
-    document.getElementById('btnTabNohin').style.background = (currentTab === 'nohin') ? '#1e293b' : '#e2e8f0';
-    document.getElementById('btnTabNohin').style.color = (currentTab === 'nohin') ? '#fff' : '#0f172a';
-    document.getElementById('btnTabHenpin').style.background = (currentTab === 'henpin') ? '#b91c1c' : '#e2e8f0';
-    document.getElementById('btnTabHenpin').style.color = (currentTab === 'henpin') ? '#fff' : '#0f172a';
-    document.getElementById('btnTabSeikyu').style.background = (currentTab === 'seikyu') ? '#1e293b' : '#e2e8f0';
-    document.getElementById('btnTabSeikyu').style.color = (currentTab === 'seikyu') ? '#fff' : '#0f172a';
+    const btnNohin = document.getElementById('btnTabNohin');
+    const btnHenpin = document.getElementById('btnTabHenpin');
+    const btnSeikyu = document.getElementById('btnTabSeikyu');
+    
+    if(btnNohin && btnHenpin && btnSeikyu) {
+        btnNohin.style.background = (currentTab === 'nohin') ? '#1e293b' : '#e2e8f0';
+        btnNohin.style.color = (currentTab === 'nohin') ? '#fff' : '#0f172a';
+        btnHenpin.style.background = (currentTab === 'henpin') ? '#b91c1c' : '#e2e8f0';
+        btnHenpin.style.color = (currentTab === 'henpin') ? '#fff' : '#0f172a';
+        btnSeikyu.style.background = (currentTab === 'seikyu') ? '#1e293b' : '#e2e8f0';
+        btnSeikyu.style.color = (currentTab === 'seikyu') ? '#fff' : '#0f172a';
+    }
 }
 
 function renderItemTable() {
@@ -996,11 +1003,12 @@ function renderItemTable() {
     const tableTitleLabel = document.getElementById('tableTitleLabel');
     const addItemBtn = document.getElementById('addItemBtn');
 
+    if (!tbody || !thead) return;
     tbody.innerHTML = '';
 
-    // 請求書タブの場合は選択・明細入力を切り替える
+    // 請求書タブの場合
     if (currentTab === 'seikyu') {
-        tableTitleLabel.innerText = "請求・精算集計 (プレビュー連動)";
+        if(tableTitleLabel) tableTitleLabel.innerText = "請求・精算集計 (プレビュー連動)";
         thead.innerHTML = `<tr><th>コード</th><th>品名</th><th>前在</th><th>本在</th><th>売数</th><th>単価</th></tr>`;
         tbody.innerHTML = `
             <tr>
@@ -1012,19 +1020,19 @@ function renderItemTable() {
                 <td>${Math.round(1000 * multiplier).toLocaleString()} 円</td>
             </tr>
         `;
-        addItemBtn.style.display = 'none';
+        if(addItemBtn) addItemBtn.style.display = 'none';
         renderPreview();
         return;
     }
 
     // 納品書・返品伝票タブの場合
-    tableTitleLabel.innerText = currentTab === 'henpin' ? "返品明細データ (在庫から選択)" : "納品明細データ (在庫から選択・追加)";
+    if(tableTitleLabel) tableTitleLabel.innerText = currentTab === 'henpin' ? "返品明細データ (在庫から選択)" : "納品明細データ (在庫から選択・追加)";
     thead.innerHTML = `<tr><th>コード</th><th>品名</th><th>数量</th><th>定価(円)</th><th>単価</th><th>操作</th></tr>`;
-    addItemBtn.style.display = 'block';
+    if(addItemBtn) addItemBtn.style.display = 'block';
 
     const targetItems = (currentTab === 'henpin') ? henpinItems : nohinItems;
     
-    if(targetItems.length === 0) {
+    if(!targetItems || targetItems.length === 0) {
         tbody.innerHTML = `<tr><td colspan="6" style="padding:15px; color:#64748b; font-size:0.85rem;">商品が追加されていません。下のボタンから選択してください。</td></tr>`;
         renderPreview();
         return;
@@ -1050,19 +1058,25 @@ function renderItemTable() {
 
 function updateItem(idx, field, val) {
     const targetItems = (currentTab === 'henpin') ? henpinItems : nohinItems;
-    targetItems[idx][field] = Number(val);
-    renderItemTable();
+    if(targetItems && targetItems[idx]) {
+        targetItems[idx][field] = Number(val);
+        renderItemTable();
+    }
 }
 
 function removeItem(idx) {
     const targetItems = (currentTab === 'henpin') ? henpinItems : nohinItems;
-    targetItems.splice(idx, 1);
-    renderItemTable();
+    if(targetItems) {
+        targetItems.splice(idx, 1);
+        renderItemTable();
+    }
 }
 
 function renderPreview() {
     const store = stores[currentStoreIndex] || stores[0];
     const area = document.getElementById('previewArea');
+    if (!area) return;
+
     const dateVal = document.getElementById('inputDate').value;
     const noVal = document.getElementById('inputDenpyoNo').value;
     const currentRateStr = document.getElementById('selectRate').value;
