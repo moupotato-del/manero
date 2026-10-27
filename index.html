@@ -256,9 +256,9 @@
             text-align: center;
         }
 
-        /* 商品選択モーダル */
+        /* 商品複数選択・一括追加モーダル */
         #itemSelectModal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 15000; padding: 10px; }
-        .modal-box { background: white; padding: 15px; border-radius: 8px; width: 100%; max-width: 450px; max-height: 85vh; overflow-y: auto; border: 2px solid #0f172a; }
+        .modal-box { background: white; padding: 15px; border-radius: 8px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; border: 2px solid #0f172a; }
         
         /* 画面下部の固定テンキー */
         #numpadModal {
@@ -338,24 +338,39 @@
         <div class="splash-sub">株式会社ベルアビエ 総合システム</div>
     </div>
 
-    <!-- 商品選択・追加モーダル -->
+    <!-- 商品複数選択・一括追加モーダル -->
     <div id="itemSelectModal">
         <div class="modal-box">
-            <h3 style="margin-top:0; color:#0f172a; font-size:1rem;">📦 商品マスタから選択または新規登録</h3>
-            <div style="margin-bottom:10px;">
-                <input type="text" id="itemSearchInput" placeholder="🔍 商品名や価格で検索..." oninput="filterMasterItems()" style="width:100%; padding:8px; box-sizing:border-box; border:1px solid #cbd5e1; border-radius:4px; font-size:1rem;">
-            </div>
-            <div id="masterListContainer" style="max-height:180px; overflow-y:auto; border:1px solid #cbd5e1; border-radius:4px; margin-bottom:15px; background:#f8fafc;"></div>
+            <h3 style="margin-top:0; color:#0f172a; font-size:1rem;">📦 商品をタップして数量を選択</h3>
+            <p style="font-size:0.75rem; color:#64748b; margin-top:-4px; margin-bottom:8px;">タップするごとに数量が「＋1」されます（[－]ボタンで減らせます）</p>
             
-            <hr style="border:0; border-top:1px dashed #cbd5e1; margin:10px 0;">
-            
-            <h4 style="margin:5px 0; color:#0f172a; font-size:0.9rem;">＋ 新規商品を登録して追加</h4>
-            <div style="display:flex; gap:6px; margin-bottom:6px;">
-                <input type="text" id="newMasterCode" placeholder="コード" style="flex:1; padding:8px; font-size:0.9rem;">
-                <input type="text" id="newMasterName" placeholder="品名" style="flex:2; padding:8px; font-size:0.9rem;">
+            <div style="margin-bottom:8px;">
+                <input type="text" id="itemSearchInput" placeholder="🔍 商品名や価格で検索..." oninput="filterMasterItems()" style="width:100%; padding:8px; box-sizing:border-box; border:1px solid #cbd5e1; border-radius:4px; font-size:0.95rem;">
             </div>
+            
+            <!-- 選択リストコンテナ -->
+            <div id="masterListContainer" style="max-height:220px; overflow-y:auto; border:1px solid #cbd5e1; border-radius:4px; margin-bottom:10px; background:#f8fafc;"></div>
+            
+            <!-- 選択中のアイテム確認・一括決定エリア -->
+            <div style="background:#f1f5f9; padding:8px; border-radius:6px; margin-bottom:10px; font-size:0.8rem; border:1px solid #cbd5e1;">
+                <strong>選択中合計: <span id="selectedCountBadge" style="color:#16a34a; font-size:0.95rem;">0</span> 点</strong>
+                <div id="selectedSummaryList" style="max-height:60px; overflow-y:auto; margin-top:4px; color:#475569;">なし</div>
+            </div>
+
             <div style="display:flex; gap:6px; margin-bottom:10px;">
-                <select id="newMasterPrice" style="flex:1; padding:8px; font-size:0.9rem;">
+                <button onclick="confirmSelectedItems()" style="flex:2; background:#16a34a; color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:0.95rem;">✓ 選択した商品をまとめて追加</button>
+                <button onclick="closeItemSelectModal()" style="flex:1; background:#64748b; color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:0.9rem;">キャンセル</button>
+            </div>
+            
+            <hr style="border:0; border-top:1px dashed #cbd5e1; margin:8px 0;">
+            
+            <h4 style="margin:4px 0; color:#0f172a; font-size:0.85rem;">＋ 新規商品を登録して追加</h4>
+            <div style="display:flex; gap:4px; margin-bottom:4px;">
+                <input type="text" id="newMasterCode" placeholder="コード" style="flex:1; padding:6px; font-size:0.85rem;">
+                <input type="text" id="newMasterName" placeholder="品名" style="flex:2; padding:6px; font-size:0.85rem;">
+            </div>
+            <div style="display:flex; gap:4px;">
+                <select id="newMasterPrice" style="flex:1; padding:6px; font-size:0.85rem;">
                     <option value="380">380円</option><option value="500">500円</option><option value="700">700円</option>
                     <option value="1000" selected>1,000円</option><option value="1200">1,200円</option><option value="1500">1,500円</option>
                     <option value="1900">1,900円 (特29)</option><option value="2000">2,000円</option><option value="2900">2,900円 (特49)</option>
@@ -366,9 +381,8 @@
                     <option value="19900">19,900円</option><option value="24900">24,900円</option><option value="27900">27,900円</option>
                     <option value="29900">29,900円</option>
                 </select>
-                <button onclick="addNewMasterAndSelect()" style="background:#16a34a; color:white; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">追加</button>
+                <button onclick="addNewMasterAndQuickSelect()" style="background:#0f172a; color:white; border:none; padding:6px 10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:0.85rem;">登録して追加</button>
             </div>
-            <button onclick="closeItemSelectModal()" style="width:100%; background:#64748b; color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer;">キャンセル</button>
         </div>
     </div>
 
@@ -567,7 +581,7 @@
                     <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items:center; flex-wrap:wrap; gap:5px;">
                         <div>
                             <label>発行日:</label>
-                            <input type="text" id="inputDate" value="26/10/28 08:10" style="width:100px; padding:4px;" oninput="renderPreview()">
+                            <input type="text" id="inputDate" value="26/10/28 08:16" style="width:100px; padding:4px;" oninput="renderPreview()">
                             <label>伝票No:</label>
                             <input type="text" id="inputDenpyoNo" value="0726100111" style="width:85px; padding:4px;" oninput="renderPreview()">
                         </div>
@@ -829,6 +843,9 @@ let nohinItems = [];
 let henpinItems = [];
 let activeInputCallback = null;
 
+// 商品選択モーダル内で一時保持する選択中数量マップ（key: code, value: qty）
+let tempSelectedQtys = {};
+
 window.onload = function() {
     renderStoreList(stores);
     selectStore(0);
@@ -1011,9 +1028,13 @@ function getRateMultiplier() {
     return !isNaN(num) ? num / 100 : 0.6;
 }
 
+// 複数選択用商品選択モーダルを開く
 function openItemSelectModal() {
+    tempSelectedQtys = {}; // 初期化
+    document.getElementById('itemSelectInput').value = '';
     document.getElementById('itemSelectModal').style.display = 'flex';
     renderMasterList(masterItems);
+    updateSelectedSummary();
 }
 function closeItemSelectModal() { document.getElementById('itemSelectModal').style.display = 'none'; }
 
@@ -1025,14 +1046,37 @@ function renderMasterList(items) {
         return;
     }
     items.forEach(m => {
+        const qty = tempSelectedQtys[m.code] || 0;
         const div = document.createElement('div');
-        div.style.cssText = "padding:8px 10px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; cursor:pointer; font-size:0.85rem;";
-        div.innerHTML = `<span><strong>[${m.code}]</strong> ${m.name} (定価:${m.price.toLocaleString()}円)</span> <button style="background:#1e293b; color:white; border:none; padding:3px 8px; border-radius:4px; font-size:0.75rem;">選択</button>`;
-        div.onmouseover = () => div.style.background = '#f1f5f9';
-        div.onmouseout = () => div.style.background = '#f8fafc';
-        div.onclick = () => selectMasterItem(m);
+        div.style.cssText = `padding:8px 10px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; cursor:pointer; font-size:0.85rem; background:${qty > 0 ? '#ecfdf5' : '#f8fafc'};`;
+        
+        div.innerHTML = `
+            <div style="flex-grow:1;" onclick="incrementTempQty('${m.code}')">
+                <strong>[${m.code}]</strong> ${m.name} (定価:${m.price.toLocaleString()}円)
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+                <button onclick="decrementTempQty('${m.code}'); event.stopPropagation();" style="background:#cbd5e1; color:#0f172a; border:none; width:26px; height:26px; border-radius:4px; font-weight:bold; cursor:pointer;">-</button>
+                <span style="font-weight:bold; font-size:0.95rem; min-width:24px; text-align:center; color:${qty > 0 ? '#16a34a' : '#64748b'};">${qty}</span>
+                <button onclick="incrementTempQty('${m.code}'); event.stopPropagation();" style="background:#1e293b; color:white; border:none; width:26px; height:26px; border-radius:4px; font-weight:bold; cursor:pointer;">+</button>
+            </div>
+        `;
         container.appendChild(div);
     });
+}
+
+function incrementTempQty(code) {
+    tempSelectedQtys[code] = (tempSelectedQtys[code] || 0) + 1;
+    renderMasterList(masterItems);
+    updateSelectedSummary();
+}
+
+function decrementTempQty(code) {
+    if (tempSelectedQtys[code] && tempSelectedQtys[code] > 0) {
+        tempSelectedQtys[code]--;
+        if (tempSelectedQtys[code] === 0) delete tempSelectedQtys[code];
+    }
+    renderMasterList(masterItems);
+    updateSelectedSummary();
 }
 
 function filterMasterItems() {
@@ -1041,26 +1085,77 @@ function filterMasterItems() {
     renderMasterList(filtered);
 }
 
-function selectMasterItem(m) {
+function updateSelectedSummary() {
+    const summaryDiv = document.getElementById('selectedSummaryList');
+    const badge = document.getElementById('selectedCountBadge');
+    const codes = Object.keys(tempSelectedQtys);
+    
+    let totalItemsCount = 0;
+    codes.forEach(c => totalItemsCount += tempSelectedQtys[c]);
+    badge.innerText = totalItemsCount;
+
+    if (codes.length === 0) {
+        summaryDiv.innerHTML = '選択されている商品はありません（リストの商品をタップして個数を増やしてください）';
+        return;
+    }
+
+    let html = '';
+    codes.forEach(code => {
+        const itemObj = masterItems.find(m => m.code === code);
+        if (itemObj) {
+            html += `<div>• ${itemObj.name} × <strong>${tempSelectedQtys[code]}</strong>点</div>`;
+        }
+    });
+    summaryDiv.innerHTML = html;
+}
+
+// 選択した商品をまとめて現在の伝票リストに追加・反映
+function confirmSelectedItems() {
     if (currentTab === 'seikyu') return;
     const targetList = (currentTab === 'henpin') ? henpinItems : nohinItems;
-    targetList.push({ code: m.code, name: m.name, qty: 1, listPrice: m.price });
+    
+    const codes = Object.keys(tempSelectedQtys);
+    if (codes.length === 0) {
+        alert("商品が選択されていません。商品リストをタップして個数を指定してください。");
+        return;
+    }
+
+    codes.forEach(code => {
+        const qtyToAdd = tempSelectedQtys[code];
+        const masterObj = masterItems.find(m => m.code === code);
+        if (masterObj && qtyToAdd > 0) {
+            // 既に同じコードが明細にあれば数量を加算、なければ新規追加
+            const existing = targetList.find(i => i.code === code);
+            if (existing) {
+                existing.qty += qtyToAdd;
+            } else {
+                targetList.push({ code: masterObj.code, name: masterObj.name, qty: qtyToAdd, listPrice: masterObj.price });
+            }
+        }
+    });
+
     closeItemSelectModal();
     renderItemTable();
 }
 
-function addNewMasterAndSelect() {
+function addNewMasterAndQuickSelect() {
     const code = document.getElementById('newMasterCode').value.trim();
     const name = document.getElementById('newMasterName').value.trim();
     const price = parseInt(document.getElementById('newMasterPrice').value, 10);
     
     if(!code || !name) { alert("商品コードと品名を入力してください。"); return; }
+    
     const newItem = { code, name, price };
     masterItems.push(newItem);
-    selectMasterItem(newItem);
+    
+    // 自動でテンポラリに1個追加して再描画
+    tempSelectedQtys[code] = (tempSelectedQtys[code] || 0) + 1;
+    renderMasterList(masterItems);
+    updateSelectedSummary();
     
     document.getElementById('newMasterCode').value = '';
     document.getElementById('newMasterName').value = '';
+    alert(`新商品「${name}」をマスタに登録し、選択状態に追加しました！`);
 }
 
 function openNumpad(title, currentVal, callback) {
