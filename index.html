@@ -469,7 +469,7 @@
                     <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items:center; flex-wrap:wrap; gap:5px;">
                         <div>
                             <label>発行日:</label>
-                            <input type="text" id="inputDate" value="26/10/27 05:20" style="width:100px; padding:4px;" oninput="renderPreview()">
+                            <input type="text" id="inputDate" value="26/10/27 05:27" style="width:100px; padding:4px;" oninput="renderPreview()">
                             <label>伝票No:</label>
                             <input type="text" id="inputDenpyoNo" value="0726100111" style="width:85px; padding:4px;" oninput="renderPreview()">
                         </div>
@@ -538,17 +538,23 @@
         </div>
     </div>
 
-    <!-- ③ その他メニュー画面（ここでカレンダー・メモ・電卓をいつでもポップアップ呼び出し可能） -->
+    <!-- ③ その他メニュー画面（バックアップ・電卓・カレンダー・メモをすべて収納） -->
     <div id="app-other" class="tool-view">
         <button class="back-btn" onclick="goHome()">⬅ 端末ホームに戻る</button>
         <div class="sub-panel" style="max-width:500px; margin:20px auto; text-align:center;">
             <h3>🛠️ その他の便利ツール（普段は収納されています）</h3>
-            <p style="font-size:0.85rem; color:#64748b; margin-bottom:15px;">タップするとその場でポップアップ表示されます</p>
+            <p style="font-size:0.85rem; color:#64748b; margin-bottom:15px;">タップするとポップアップ表示またはバックアップを実行できます</p>
             <div style="display:flex; flex-direction:column; gap:10px;">
                 <button onclick="switchApp('history')" style="padding:14px; font-size:1rem; background:#0f172a; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">📜 発行・操作履歴の確認</button>
                 <button onclick="openModal('calendarModal')" style="padding:14px; font-size:1rem; background:#475569; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">📅 スケジュール・カレンダーを開く</button>
                 <button onclick="openModal('memoModal')" style="padding:14px; font-size:1rem; background:#475569; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">📝 クイックメモを開く</button>
                 <button onclick="openModal('calcModal')" style="padding:14px; font-size:1rem; background:#475569; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">🔢 簡易電卓を開く</button>
+                
+                <hr style="border:0; border-top:1px dashed #cbd5e1; margin:10px 0;">
+                
+                <button onclick="exportBackupData()" style="padding:14px; font-size:1rem; background:#16a34a; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">💾 データをファイルにバックアップ (JSON)</button>
+                <button onclick="document.getElementById('importFile').click()" style="padding:14px; font-size:1rem; background:#d97706; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">📂 バックアップからデータを復元</button>
+                <input type="file" id="importFile" style="display:none" accept=".json" onchange="importBackupData(event)">
             </div>
         </div>
     </div>
@@ -761,6 +767,52 @@ function goHome() { switchApp('home'); }
 function openModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
 function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
 
+// バックアップファイル書き出し (エクスポート) 機能
+function exportBackupData() {
+    const backupObj = {
+        stores: stores,
+        action_logs: JSON.parse(localStorage.getItem('manero_action_logs') || '[]'),
+        memo: localStorage.getItem('manero_memo') || '',
+        export_date: new Date().toLocaleString()
+    };
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupObj, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", "manero_backup_" + new Date().toISOString().slice(0,10) + ".json");
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+}
+
+// バックアップファイル読み込み (インポート・復元) 機能
+function importBackupData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const imported = JSON.parse(e.target.result);
+            if (imported.stores && Array.isArray(imported.stores)) {
+                stores = imported.stores;
+            }
+            if (imported.action_logs) {
+                localStorage.setItem('manero_action_logs', JSON.stringify(imported.action_logs));
+            }
+            if (imported.memo !== undefined) {
+                localStorage.setItem('manero_memo', imported.memo);
+                document.getElementById('quickMemo').value = imported.memo;
+            }
+            renderStoreList(stores);
+            selectStore(0);
+            alert("✅ バックアップデータから正常に復元しました！");
+        } catch(err) {
+            alert("⚠️ ファイルの読み込みに失敗しました。正しいバックアップJSONファイルを選択してください。");
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = ''; // リセット
+}
+
 function getPrefecture(address) {
     const prefs = ['秋田県', '岩手県', '山形県', '福島県', '茨城県', '群馬県', '埼玉県', '千葉県', '栃木県', '富山県', '新潟県', '兵庫県', '大阪府', '熊本県'];
     for (let p of prefs) { if (address.includes(p)) return p; }
@@ -779,7 +831,6 @@ function renderStoreList(storeArray) {
         grouped[pref].push(store);
     });
 
-    // 秋田を最上位にし、北から南へ並ぶ順序定義
     const prefOrder = ['秋田県', '岩手県', '山形県', '福島県', '茨城県', '群馬県', '埼玉県', '千葉県', '栃木県', '富山県', '新潟県', '兵庫県', '大阪府', '熊本県', 'その他'];
 
     prefOrder.forEach(pref => {
