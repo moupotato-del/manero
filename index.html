@@ -525,7 +525,7 @@
                     <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items:center; flex-wrap:wrap; gap:5px;">
                         <div>
                             <label>発行日:</label>
-                            <input type="text" id="inputDate" value="26/10/27 20:28" style="width:100px; padding:4px;" oninput="renderPreview()">
+                            <input type="text" id="inputDate" value="26/10/27 20:43" style="width:100px; padding:4px;" oninput="renderPreview()">
                             <label>伝票No:</label>
                             <input type="text" id="inputDenpyoNo" value="0726100111" style="width:85px; padding:4px;" oninput="renderPreview()">
                         </div>
@@ -555,9 +555,14 @@
                     <textarea id="memoInput" rows="2" placeholder="自由記入欄（伝票下部に出力されます）" style="width:100%; padding:6px; font-size:0.85rem; box-sizing:border-box; border:1px solid #cbd5e1; border-radius:4px;" oninput="renderPreview()"></textarea>
                 </div>
 
+                <!-- 簡易電卓呼び出しボタン -->
+                <div style="margin-bottom: 8px;">
+                    <button onclick="openModal('calcModal')" style="width: 100%; padding: 10px; background: #475569; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 0.9rem; cursor: pointer;">🔢 簡易電卓を開く</button>
+                </div>
+
                 <div id="previewArea" class="preview-container mode-a4" style="margin-top:10px;"></div>
 
-                <!-- 伝票作成画面の一番下に配置した印刷ボタン -->
+                <!-- 一番下に配置した印刷ボタン -->
                 <div style="margin-top: 15px;">
                     <button onclick="openPrintModal()" id="printButton" style="width: 100%; padding: 12px; background: #0f172a; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 1rem; cursor: pointer;">🖨️ 伝票を印刷する</button>
                 </div>
@@ -599,7 +604,7 @@
         </div>
     </div>
 
-    <!-- ③ その他メニュー画面（バックアップ・電卓・カレンダー・メモをすべて収納） -->
+    <!-- ③ その他メニュー -->
     <div id="app-other" class="tool-view">
         <button class="back-btn" onclick="goHome()">⬅ 端末ホームに戻る</button>
         <div class="sub-panel" style="max-width:500px; margin:20px auto; text-align:center;">
@@ -824,11 +829,9 @@ function switchApp(appId) {
 
 function goHome() { switchApp('home'); }
 
-// ポップアップモーダルの開閉関数
 function openModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
 function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
 
-// バックアップファイル書き出し (エクスポート) 機能
 function exportBackupData() {
     const backupObj = {
         stores: stores,
@@ -845,7 +848,6 @@ function exportBackupData() {
     downloadAnchor.remove();
 }
 
-// バックアップファイル読み込み (インポート・復元) 機能
 function importBackupData(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -1067,27 +1069,57 @@ function renderItemTable() {
     if (!tbody || !thead) return;
     tbody.innerHTML = '';
 
-    // 請求書タブの場合
+    // 請求書タブの場合：納品数と返品数から「売れたぶん（在庫ないぶん）」を自動集計してテーブルに一覧化
     if (currentTab === 'seikyu') {
-        if(tableTitleLabel) tableTitleLabel.innerText = "請求・精算集計 (プレビュー連動)";
-        thead.innerHTML = `<tr><th>コード</th><th>品名</th><th>前在</th><th>本在</th><th>売数</th><th>単価</th></tr>`;
-        tbody.innerHTML = `
-            <tr>
-                <td>001000</td>
-                <td style="text-align:left; padding-left:6px;">衣類 1,000円売</td>
-                <td><input type="text" value="0" style="width:40px;"></td>
-                <td><input type="text" value="0" style="width:40px;"></td>
-                <td><input type="text" value="0" style="width:40px;"></td>
-                <td>${Math.round(1000 * multiplier).toLocaleString()} 円</td>
-            </tr>
-        `;
+        if(tableTitleLabel) tableTitleLabel.innerText = "請求・精算集計 (納品・返品から自動計算)";
+        thead.innerHTML = `<tr><th>コード</th><th>品名</th><th>納品数</th><th>返品数</th><th>売上数</th><th>単価</th></tr>`;
+        
+        // 納品データと返品データを品目コードごとに集計
+        const summaryMap = {};
+        nohinItems.forEach(item => {
+            if(!summaryMap[item.code]) {
+                summaryMap[item.code] = { name: item.name, listPrice: item.listPrice, nohin: 0, henpin: 0 };
+            }
+            summaryMap[item.code].nohin += item.qty;
+        });
+        henpinItems.forEach(item => {
+            if(!summaryMap[item.code]) {
+                summaryMap[item.code] = { name: item.name, listPrice: item.listPrice, nohin: 0, henpin: 0 };
+            }
+            summaryMap[item.code].henpin += item.qty;
+        });
+
+        const codes = Object.keys(summaryMap);
+        if(codes.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="padding:15px; color:#64748b; font-size:0.85rem;">納品データまたは返品データがありません。「委託納品書」や「返品伝票」を作成してください。</td></tr>`;
+            renderPreview();
+            return;
+        }
+
+        codes.forEach(code => {
+            const data = summaryMap[code];
+            const soldQty = Math.max(0, data.nohin - data.henpin); // 納品数 - 返品数 = 在庫ないぶん（売上数）
+            const unitP = Math.round(data.listPrice * multiplier);
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${code}</td>
+                <td style="text-align:left; padding-left:6px;">${data.name}</td>
+                <td>${data.nohin}</td>
+                <td style="color:#b91c1c;">${data.henpin}</td>
+                <td style="font-weight:bold; color:#16a34a;">${soldQty}</td>
+                <td>${unitP.toLocaleString()} 円</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
         if(addItemBtn) addItemBtn.style.display = 'none';
         renderPreview();
         return;
     }
 
     // 納品書・返品伝票タブの場合
-    if(tableTitleLabel) tableTitleLabel.innerText = currentTab === 'henpin' ? "返品明細データ (在庫から選択)" : "納品明細データ (在庫から選択・追加)";
+    if(tableTitleLabel) tableTitleLabel.innerText = currentTab === 'henpin' ? "返品明細データ (在庫から選択)" : "納品明細-データ (在庫から選択・追加)";
     thead.innerHTML = `<tr><th>コード</th><th>品名</th><th>数量</th><th>定価(円)</th><th>単価</th><th>操作</th></tr>`;
     if(addItemBtn) addItemBtn.style.display = 'block';
 
@@ -1217,6 +1249,34 @@ function renderPreview() {
             </div>
         `;
     } else {
+        // 請求書プレビュー：納品数と返品数を集計し、「在庫ないぶん（売上数）」を掛け率単価で自動計算して表示
+        let summaryMap = {};
+        nohinItems.forEach(item => {
+            if(!summaryMap[item.code]) summaryMap[item.code] = { name: item.name, listPrice: item.listPrice, nohin: 0, henpin: 0 };
+            summaryMap[item.code].nohin += item.qty;
+        });
+        henpinItems.forEach(item => {
+            if(!summaryMap[item.code]) summaryMap[item.code] = { name: item.name, listPrice: item.listPrice, nohin: 0, henpin: 0 };
+            summaryMap[item.code].henpin += item.qty;
+        });
+
+        let totalBilling = 0;
+        let seikyuRows = '';
+        const codes = Object.keys(summaryMap);
+
+        if(codes.length === 0) {
+            seikyuRows = `<tr><td colspan="6">納品・返品データがありません</td></tr>`;
+        } else {
+            codes.forEach(code => {
+                const data = summaryMap[code];
+                const soldQty = Math.max(0, data.nohin - data.henpin); // 在庫ないぶん（売上数）
+                const unitP = Math.round(data.listPrice * multiplier);
+                const amount = soldQty * unitP;
+                totalBilling += amount;
+                seikyuRows += `<tr><td>${code}</td><td>${data.name}</td><td>${data.nohin}</td><td>${data.henpin}</td><td>${soldQty}</td><td>${unitP.toLocaleString()}</td><td>${amount.toLocaleString()}</td></tr>`;
+            });
+        }
+
         area.innerHTML = `
             <div class="denpyo-title">請 求 書 (精算)</div>
             <div class="denpyo-header" style="display:flex; justify-content:space-between;">
@@ -1230,16 +1290,16 @@ function renderPreview() {
                 </div>
             </div>
             <table class="denpyo-table">
-                <tr><th>コード</th><th>品名</th><th>前在</th><th>本在</th><th>売数</th><th>単価</th><th>金額</th></tr>
-                <tr><td>001000</td><td>衣類 1,000円売</td><td>0</td><td>0</td><td>0</td><td>${Math.round(1000 * multiplier)}</td><td>0</td></tr>
-                <tr><td colspan="6" style="text-align:right; font-weight:bold;">合計金額</td><td>0</td></tr>
+                <tr><th>コード</th><th>品名</th><th>納品</th><th>返品</th><th>売上(在庫無)</th><th>単価</th><th>金額</th></tr>
+                ${seikyuRows}
+                <tr><td colspan="6" style="text-align:right; font-weight:bold;">ご請求合計金額</td><td>${totalBilling.toLocaleString()} 円</td></tr>
             </table>
             <div style="margin-top:10px; padding:6px; border:1px solid #000; font-size:0.75rem; min-height:40px; background:#fff;">
                 ${memoVal ? memoVal.replace(/\n/g, '<br>') : ''}
             </div>
             <div style="font-size:0.75rem; margin-top:8px;">
-                前回残高: 0 | お買上額: 0 | ご請求額: 0<br>
-                <strong>請求残高: 0 円</strong>
+                委託納品数と返品伝票の差分（在庫ないぶん）から自動算出したご請求金額です。<br>
+                <strong>請求残高: ${totalBilling.toLocaleString()} 円</strong>
             </div>
         `;
     }
@@ -1344,7 +1404,7 @@ function editStore(index) {
 
 function saveStoreEdit() {
     const index = document.getElementById('editIndex').value;
-    const name = document.getElementById('editName').value;
+    const name = document.getElementById('editName': value);
     const address = document.getElementById('editAddress').value;
     const tel = document.getElementById('editTel').value;
     const zip = document.getElementById('editZip').value;
