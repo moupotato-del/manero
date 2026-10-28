@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>manero - 株式会社ベルアビエ</title>
+    <title>manero - （株）ベルアビエ</title>
     <style>
         :root {
             --bg-color: #f1f5f9;
@@ -335,7 +335,7 @@
     <!-- 起動時スプラッシュ画面 -->
     <div id="splash-screen">
         <div class="splash-logo">manero</div>
-        <div class="splash-sub">株式会社ベルアビエ 総合システム</div>
+        <div class="splash-sub">（株）ベルアビエ 総合システム</div>
     </div>
 
     <!-- 商品複数選択・一括追加モーダル -->
@@ -583,9 +583,10 @@
                     <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items:center; flex-wrap:wrap; gap:5px;">
                         <div>
                             <label>発行日:</label>
-                            <input type="text" id="inputDate" value="26/10/28 09:07" style="width:100px; padding:4px;" oninput="renderPreview()">
+                            <input type="text" id="inputDate" value="26/10/28 09:15" style="width:100px; padding:4px;" oninput="renderPreview()">
                             <label>伝票No:</label>
-                            <input type="text" id="inputDenpyoNo" value="0726100111" style="width:85px; padding:4px;" oninput="renderPreview()">
+                            <!-- 伝票番号は自動付与（読み取り専用にして重複防止） -->
+                            <input type="text" id="inputDenpyoNo" readonly style="width:130px; padding:4px; background:#e2e8f0; font-weight:bold; text-align:center;" title="自動付与されるため重複しません">
                         </div>
                         <div>
                             <label style="font-weight:bold;">掛率:</label>
@@ -625,10 +626,9 @@
                     <button onclick="openPrintModal()" id="printButton" style="width: 100%; padding: 12px; background: #0f172a; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 1rem; cursor: pointer;">🖨️ 伝票を印刷する</button>
                 </div>
 
-                <!-- 各伝票発行画面の下部に追加した「業務終了時のバックアップ推奨」エリア -->
+                <!-- 各伝票発行画面の下部に追加した「バックアップ推奨」エリア -->
                 <div class="daily-backup-box">
-                    <p style="margin:0 0 8px 0; font-size:0.85rem; font-weight:bold; color:#b45309;">⚠️ 本日の業務はお疲れ様でした！</p>
-                    <p style="margin:0 0 10px 0; font-size:0.75rem; color:#78350f;">データ保護のため、業務終了時には必ずバックアップ（JSON保存）を取るようお願いいたします。</p>
+                    <p style="margin:0 0 6px 0; font-size:0.85rem; font-weight:bold; color:#b45309;">⚠️ データの保護のため、業務終了時には毎日バックアップを取るようお願いいたします。</p>
                     <button onclick="exportBackupData()" style="width:100%; padding:10px; background:#d97706; color:white; border:none; border-radius:6px; font-weight:bold; font-size:0.85rem; cursor:pointer;">💾 本日のバックアップファイルを取得 (JSON)</button>
                 </div>
 
@@ -819,6 +819,7 @@ let masterItems = [
     { code: "001200", name: "衣類 1,200円売", price: 1200 },
     { code: "001500", name: "衣類 1,500円売", price: 1500 },
     { code: "001900", name: "衣類 1,900円売 (特29)", price: 1900 },
+    { code: "391900", name: "衣類 1,900円売（39）", price: 1900 },
     { code: "002000", name: "衣類 2,000円売", price: 2000 },
     { code: "002900", name: "衣類 2,900円売 (特49)", price: 2900 },
     { code: "003000", name: "衣類 3,000円売", price: 3000 },
@@ -845,19 +846,37 @@ let nohinItems = [];
 let henpinItems = [];
 let activeInputCallback = null;
 
-// テンキー入力時、最初の1打目で既存数値をクリアするためのフラグ
 let isFirstKeyStroke = true;
-
-// 商品選択モーダル内で一時保持する選択中数量マップ（key: code, value: qty）
 let tempSelectedQtys = {};
 
 window.onload = function() {
     renderStoreList(stores);
     selectStore(0);
+    generateUniqueDenpyoNo(); // 起動時に重複しない伝票番号を自動生成
     renderItemTable();
     const savedMemo = localStorage.getItem('manero_memo');
     if (savedMemo) document.getElementById('quickMemo').value = savedMemo;
 };
+
+// 重複しない絶対に被らない伝票番号の自動生成関数
+function generateUniqueDenpyoNo() {
+    const now = new Date();
+    const yy = String(now.getFullYear()).slice(-2);
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const hh = String(now.getHours()).padStart(2, '0');
+    const min = String(now.getMinutes()).padStart(2, '0');
+    const ss = String(now.getSeconds()).padStart(2, '0');
+    const ms = String(now.getMilliseconds()).padStart(3, '0');
+    const rand = Math.floor(Math.random() * 90 + 10); // 2桁のランダム数字を付与して絶対的な重複回避
+    
+    // 形式: 端末No(07) + YYMMDDHHmmss + ミリ秒(下2桁) + 乱数(2桁)
+    const uniqueNo = "07" + yy + mm + dd + hh + min + ss + ms.slice(-2) + rand;
+    const denpyoInput = document.getElementById('inputDenpyoNo');
+    if(denpyoInput) {
+        denpyoInput.value = uniqueNo;
+    }
+}
 
 function clickSeisanNav() { switchApp('seisan-menu'); }
 
@@ -887,6 +906,7 @@ function openOtherMenu() { switchApp('other'); }
 
 function openDenpyoMode(mode) {
     currentTab = mode;
+    generateUniqueDenpyoNo(); // モード切替時（新しい伝票作成時）に新しい番号を自動付与
     switchApp('denpyo');
     highlightActiveTabButton();
     renderItemTable();
@@ -1032,9 +1052,8 @@ function getRateMultiplier() {
     return !isNaN(num) ? num / 100 : 0.6;
 }
 
-// 複数選択用商品選択モーダルを開く
 function openItemSelectModal() {
-    tempSelectedQtys = {}; // 初期化
+    tempSelectedQtys = {};
     document.getElementById('itemSearchInput').value = '';
     document.getElementById('itemSelectModal').style.display = 'flex';
     renderMasterList(masterItems);
@@ -1124,7 +1143,6 @@ function updateSelectedSummary() {
     summaryDiv.innerHTML = html;
 }
 
-// 選択した商品をまとめて現在の伝票リストに追加・反映
 function confirmSelectedItems() {
     if (currentTab === 'seikyu') return;
     const targetList = (currentTab === 'henpin') ? henpinItems : nohinItems;
@@ -1237,7 +1255,6 @@ function renderItemTable() {
     if (!tbody || !thead) return;
     tbody.innerHTML = '';
 
-    // 請求書タブの場合
     if (currentTab === 'seikyu') {
         if(tableTitleLabel) tableTitleLabel.innerText = "請求・精算集計 (納品・返品から自動計算)";
         thead.innerHTML = `<tr><th>コード</th><th>品名</th><th>納品数</th><th>返品数</th><th>売上数</th><th>単価</th></tr>`;
@@ -1285,7 +1302,6 @@ function renderItemTable() {
         return;
     }
 
-    // 納品書・返品伝票タブの場合
     if(tableTitleLabel) tableTitleLabel.innerText = currentTab === 'henpin' ? "返品明細データ (在庫から選択)" : "納品明細データ (在庫から選択・追加)";
     thead.innerHTML = `<tr><th>コード</th><th>品名</th><th>数量</th><th>定価(円)</th><th>単価</th><th>操作</th></tr>`;
     if(addItemBtn) addItemBtn.style.display = 'block';
@@ -1343,17 +1359,28 @@ function renderPreview() {
     const multiplier = getRateMultiplier();
     const memoVal = document.getElementById('memoInput').value;
     
-    // 発行元情報共通ブロック（担当者携帯優先、インボイス登録番号、新住所・連絡先、振込先案内）
-    const issuerHeaderHtml = `
+    // 納品書・返品伝票用の共通発行元ヘッダー（振込先なし）
+    const baseIssuerHtml = `
         <div style="font-size:0.75rem; margin-top:8px; line-height:1.4;">
-            <strong>株式会社ベルアビエ デコレ事業部 (サントテール)</strong><br>
+            <strong>（株）ベルアビエ デコレ事業部</strong><br>
             〒963-4312 福島県田村市船引町船引字下扇田52<br>
             <strong>担当: 大和地 豊 (TEL: 080-5562-4600)</strong><br>
             TEL 0247-81-2215 / FAX 0247-81-2216<br>
-            インボイス登録番号: T63-80001-008040<br>
+            登録番号: T63-80001-008040
+        </div>
+    `;
+
+    // 請求書用の振込先付き発行元ヘッダー
+    const seikyuIssuerHtml = `
+        <div style="font-size:0.75rem; margin-top:8px; line-height:1.4;">
+            <strong>（株）ベルアビエ デコレ事業部</strong><br>
+            〒963-4312 福島県田村市船引町船引字下扇田52<br>
+            <strong>担当: 大和地 豊 (TEL: 080-5562-4600)</strong><br>
+            TEL 0247-81-2215 / FAX 0247-81-2216<br>
+            登録番号: T63-80001-008040<br>
             <strong>【振込先案内】</strong><br>
-            • 郵便振替: 02210-7-78715 株式会社ベルアビエ<br>
-            • 東邦銀行 船引支店 普通 547061 株式会社ベルアビエ
+            • 郵便振替: 02210-7-78715 （株）ベルアビエ<br>
+            • 東邦銀行 船引支店 普通 547061 （株）ベルアビエ
         </div>
     `;
     
@@ -1388,7 +1415,7 @@ function renderPreview() {
             <div style="margin-top:10px; padding:6px; border:1px solid #000; font-size:0.75rem; min-height:40px; background:#fff;">
                 ${memoVal ? memoVal.replace(/\n/g, '<br>') : ''}
             </div>
-            ${issuerHeaderHtml}
+            ${baseIssuerHtml}
         `;
     } else if (currentTab === 'henpin') {
         let totalAmount = 0;
@@ -1421,7 +1448,7 @@ function renderPreview() {
             <div style="margin-top:10px; padding:6px; border:1px solid #000; font-size:0.75rem; min-height:40px; background:#fff;">
                 ${memoVal ? memoVal.replace(/\n/g, '<br>') : ''}
             </div>
-            ${issuerHeaderHtml}
+            ${baseIssuerHtml}
         `;
     } else {
         let summaryMap = {};
@@ -1475,7 +1502,7 @@ function renderPreview() {
                 委託納品数と返品伝票の差分（在庫ないぶん）から自動算出したご請求金額です。<br>
                 <strong>請求残高: ${totalBilling.toLocaleString()} 円</strong>
             </div>
-            ${issuerHeaderHtml}
+            ${seikyuIssuerHtml}
         `;
     }
 }
