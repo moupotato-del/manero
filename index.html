@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>manero - （株）ベルアビエ</title>
+    <title>manero - 株式会社ベルアビエ</title>
     <style>
         :root {
             --bg-color: #f1f5f9;
@@ -169,6 +169,7 @@
             border: 1px solid var(--border-color);
             border-radius: 8px;
             margin-bottom: 12px;
+            position: relative;
         }
         .back-btn {
             background: #475569;
@@ -220,21 +221,33 @@
         table.denpyo-table th, table.denpyo-table td { border: 1px solid #000; padding: 4px 2px; text-align: center; font-size: 0.75rem; }
         table.denpyo-table th { background: #eee; }
 
-        /* 下へスクロール案内バナー（ぴょこぴょこ動く矢印付き） */
-        .scroll-guide-banner {
+        /* スクロール最下部到達時に出現するポップアップ通知バナー */
+        .bottom-scroll-toast {
+            position: sticky;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
             background: linear-gradient(135deg, #1e293b, #334155);
             color: #ffffff;
-            padding: 10px 14px;
-            border-radius: 6px;
+            padding: 10px 16px;
+            border-radius: 8px;
             text-align: center;
             font-size: 0.85rem;
             font-weight: bold;
-            margin-bottom: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .bottom-scroll-toast.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
         }
         .bounce-arrow {
             display: inline-block;
@@ -324,7 +337,7 @@
                 background: white;
             }
             /* 印刷モーダルやその他UIを強制非表示 */
-            #printModal, #numpadModal, #itemSelectModal, .utility-modal {
+            #printModal, #numpadModal, #itemSelectModal, .utility-modal, .bottom-scroll-toast {
                 display: none !important;
             }
         }
@@ -335,7 +348,7 @@
     <!-- 起動時スプラッシュ画面 -->
     <div id="splash-screen">
         <div class="splash-logo">manero</div>
-        <div class="splash-sub">（株）ベルアビエ 総合システム</div>
+        <div class="splash-sub">株式会社ベルアビエ 総合システム</div>
     </div>
 
     <!-- 商品複数選択・一括追加モーダル -->
@@ -515,7 +528,7 @@
                         <td class="label-col">担当者</td>
                         <td>
                             <select id="tantoSelect">
-                                <option value="大和地豊" selected>大和地豊</option>
+                                <option value="大和地" selected>大和地</option>
                                 <option value="スタッフA">スタッフA</option>
                                 <option value="スタッフB">スタッフB</option>
                             </select>
@@ -560,16 +573,18 @@
                 <h3 style="margin-top:0; color:#0f172a; font-size:0.95rem;">🏪 都道府県・店舗選択</h3>
                 <input type="text" id="searchInput" class="search-box" placeholder="🔍 店舗名や住所検索..." oninput="filterStores()" style="width:100%; box-sizing:border-box; padding:8px; margin-bottom:8px; border:1px solid #cbd5e1; border-radius:4px; font-size:0.9rem;">
                 <button style="width:100%; margin-bottom:10px; padding:8px; font-size:0.85rem;" onclick="openNewStoreForm()">＋ 新規店舗登録</button>
-                <div id="storeListContainer" style="max-height:55vh; overflow-y:auto;"></div>
+                
+                <!-- 都道府県リストコンテナ (スクロール監視対象) -->
+                <div id="storeListContainer" style="max-height:55vh; overflow-y:auto; position:relative;" onscroll="checkStoreListScroll(this)"></div>
+
+                <!-- スクロール最下部到達時の一時通知バナー -->
+                <div id="bottomScrollToast" class="bottom-scroll-toast">
+                    <span>👇 下に納品書やプレビューがあります！</span>
+                    <span class="bounce-arrow">⬇️</span>
+                </div>
             </div>
 
             <div class="sub-panel">
-                <!-- 下へのスクロール案内バナー（ぴょこぴょこ動く矢印付き） -->
-                <div class="scroll-guide-banner">
-                    <span>👇 納品書やプレビューは下にあります！下にスクロールしていってください</span>
-                    <span class="bounce-arrow">⬇️</span>
-                </div>
-
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <h3 id="selectedStoreName" style="margin:0; color:#0f172a; font-size:0.95rem;">店舗を選択してください</h3>
                     <div style="display:flex; gap:4px;">
@@ -849,6 +864,10 @@ let activeInputCallback = null;
 let isFirstKeyStroke = true;
 let tempSelectedQtys = {};
 
+// 都道府県リストの最下部到達スクロール案内制御用変数
+let hasShownBottomToast = false;
+let toastTimeout = null;
+
 window.onload = function() {
     renderStoreList(stores);
     selectStore(0);
@@ -857,6 +876,33 @@ window.onload = function() {
     const savedMemo = localStorage.getItem('manero_memo');
     if (savedMemo) document.getElementById('quickMemo').value = savedMemo;
 };
+
+// 都道府県リストのスクロール監視（一番下に到達して止まった時に案内を出し、都度消す）
+function checkStoreListScroll(el) {
+    const toast = document.getElementById('bottomScrollToast');
+    if (!toast) return;
+
+    // スクロールが上に巻き戻された場合
+    if (el.scrollTop < el.scrollHeight - el.clientHeight - 10) {
+        hasShownBottomToast = false;
+        toast.classList.remove('show');
+        if (toastTimeout) clearTimeout(toastTimeout);
+        return;
+    }
+
+    // 最下部に到達した瞬間（まだその回の表示を行っていない場合）
+    const isAtBottom = Math.abs(el.scrollHeight - el.scrollTop - el.clientHeight) <= 2;
+    if (isAtBottom && !hasShownBottomToast) {
+        hasShownBottomToast = true;
+        toast.classList.add('show');
+
+        if (toastTimeout) clearTimeout(toastTimeout);
+        // 3.5秒後に自動で消す
+        toastTimeout = setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3500);
+    }
+}
 
 // 重複しない絶対に被らない伝票番号の自動生成関数
 function generateUniqueDenpyoNo() {
@@ -1362,9 +1408,9 @@ function renderPreview() {
     // 納品書・返品伝票用の共通発行元ヘッダー（振込先なし）
     const baseIssuerHtml = `
         <div style="font-size:0.75rem; margin-top:8px; line-height:1.4;">
-            <strong>（株）ベルアビエ デコレ事業部</strong><br>
+            <strong>株式会社ベルアビエ デコレ事業部</strong><br>
             〒963-4312 福島県田村市船引町船引字下扇田52<br>
-            <strong>担当: 大和地 豊 (TEL: 080-5562-4600)</strong><br>
+            <strong>担当: 大和地 (TEL: 080-5562-4600)</strong><br>
             TEL 0247-81-2215 / FAX 0247-81-2216<br>
             登録番号: T63-80001-008040
         </div>
@@ -1373,14 +1419,14 @@ function renderPreview() {
     // 請求書用の振込先付き発行元ヘッダー
     const seikyuIssuerHtml = `
         <div style="font-size:0.75rem; margin-top:8px; line-height:1.4;">
-            <strong>（株）ベルアビエ デコレ事業部</strong><br>
+            <strong>株式会社ベルアビエ デコレ事業部</strong><br>
             〒963-4312 福島県田村市船引町船引字下扇田52<br>
-            <strong>担当: 大和地 豊 (TEL: 080-5562-4600)</strong><br>
+            <strong>担当: 大和地 (TEL: 080-5562-4600)</strong><br>
             TEL 0247-81-2215 / FAX 0247-81-2216<br>
             登録番号: T63-80001-008040<br>
             <strong>【振込先案内】</strong><br>
-            • 郵便振替: 02210-7-78715 （株）ベルアビエ<br>
-            • 東邦銀行 船引支店 普通 547061 （株）ベルアビエ
+            • 郵便振替: 02210-7-78715 株式会社ベルアビエ<br>
+            • 東邦銀行 船引支店 普通 547061 株式会社ベルアビエ
         </div>
     `;
     
@@ -1404,7 +1450,7 @@ function renderPreview() {
                     伝票No. ${noVal}<br>
                     日付: ${dateVal}<br>
                     掛率: ${currentRateStr}<br>
-                    担当: 大和地豊 (080-5562-4600)
+                    担当: 大和地 (080-5562-4600)
                 </div>
             </div>
             <table class="denpyo-table">
@@ -1437,7 +1483,7 @@ function renderPreview() {
                     伝票No. ${noVal}<br>
                     日付: ${dateVal}<br>
                     掛率: ${currentRateStr}<br>
-                    担当: 大和地豊 (080-5562-4600)
+                    担当: 大和地 (080-5562-4600)
                 </div>
             </div>
             <table class="denpyo-table">
