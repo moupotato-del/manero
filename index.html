@@ -221,15 +221,18 @@
         table.denpyo-table th, table.denpyo-table td { border: 1px solid #000; padding: 4px 2px; text-align: center; font-size: 0.75rem; }
         table.denpyo-table th { background: #eee; }
 
-        /* スクロール最下部到達時に出現するポップアップ通知バナー */
+        /* スクロール最下部到達時に出現するポップアップ通知バナー（下部中央固定） */
         .bottom-scroll-toast {
             position: sticky;
-            bottom: 15px;
-            left: 50%;
-            transform: translateX(-50%) translateY(20px);
+            bottom: 12px;
+            left: 0;
+            right: 0;
+            width: fit-content;
+            margin: 0 auto;
+            transform: translateY(20px);
             background: linear-gradient(135deg, #1e293b, #334155);
             color: #ffffff;
-            padding: 10px 16px;
+            padding: 10px 18px;
             border-radius: 8px;
             text-align: center;
             font-size: 0.85rem;
@@ -247,7 +250,7 @@
         .bottom-scroll-toast.show {
             opacity: 1;
             visibility: visible;
-            transform: translateX(-50%) translateY(0);
+            transform: translateY(0);
         }
         .bounce-arrow {
             display: inline-block;
@@ -577,9 +580,9 @@
                 <!-- 都道府県リストコンテナ (スクロール監視対象) -->
                 <div id="storeListContainer" style="max-height:55vh; overflow-y:auto; position:relative;" onscroll="checkStoreListScroll(this)"></div>
 
-                <!-- スクロール最下部到達時の一時通知バナー -->
+                <!-- スクロール最下部到達時の一時通知バナー（下部中央） -->
                 <div id="bottomScrollToast" class="bottom-scroll-toast">
-                    <span>👇 下に納品書やプレビューがあります！</span>
+                    <span>👇 伝票発行、プレビューは下にあります</span>
                     <span class="bounce-arrow">⬇️</span>
                 </div>
             </div>
