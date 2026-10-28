@@ -342,7 +342,9 @@
     <div id="itemSelectModal">
         <div class="modal-box">
             <h3 style="margin-top:0; color:#0f172a; font-size:1rem;">📦 商品をタップして数量を選択</h3>
-            <p style="font-size:0.75rem; color:#64748b; margin-top:-4px; margin-bottom:8px;">タップするごとに数量が「＋1」されます（[－]ボタンで減らせます）</p>
+            <p style="font-size:0.75rem; color:#64748b; margin-top:-4px; margin-bottom:8px;">
+                商品行の左側タップで「＋1」、**数量の数字部分を直接タッチ**するとテンキーで任意の数量を直接入力できます！
+            </p>
             
             <div style="margin-bottom:8px;">
                 <input type="text" id="itemSearchInput" placeholder="🔍 商品名や価格で検索..." oninput="filterMasterItems()" style="width:100%; padding:8px; box-sizing:border-box; border:1px solid #cbd5e1; border-radius:4px; font-size:0.95rem;">
@@ -581,7 +583,7 @@
                     <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items:center; flex-wrap:wrap; gap:5px;">
                         <div>
                             <label>発行日:</label>
-                            <input type="text" id="inputDate" value="26/10/28 08:30" style="width:100px; padding:4px;" oninput="renderPreview()">
+                            <input type="text" id="inputDate" value="26/10/28 09:07" style="width:100px; padding:4px;" oninput="renderPreview()">
                             <label>伝票No:</label>
                             <input type="text" id="inputDenpyoNo" value="0726100111" style="width:85px; padding:4px;" oninput="renderPreview()">
                         </div>
@@ -843,6 +845,9 @@ let nohinItems = [];
 let henpinItems = [];
 let activeInputCallback = null;
 
+// テンキー入力時、最初の1打目で既存数値をクリアするためのフラグ
+let isFirstKeyStroke = true;
+
 // 商品選択モーダル内で一時保持する選択中数量マップ（key: code, value: qty）
 let tempSelectedQtys = {};
 
@@ -975,7 +980,6 @@ function renderStoreList(storeArray) {
         
         const storesContainer = document.createElement('div');
         storesContainer.className = 'pref-stores-container';
-        // 初期表示時はすべて閉じられた状態に保持
 
         header.onclick = function() {
             storesContainer.classList.toggle('open');
@@ -1048,15 +1052,15 @@ function renderMasterList(items) {
     items.forEach(m => {
         const qty = tempSelectedQtys[m.code] || 0;
         const div = document.createElement('div');
-        div.style.cssText = `padding:8px 10px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; cursor:pointer; font-size:0.85rem; background:${qty > 0 ? '#ecfdf5' : '#f8fafc'};`;
+        div.style.cssText = `padding:8px 10px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; background:${qty > 0 ? '#ecfdf5' : '#f8fafc'};`;
         
         div.innerHTML = `
-            <div style="flex-grow:1;" onclick="incrementTempQty('${m.code}')">
+            <div style="flex-grow:1; cursor:pointer;" onclick="incrementTempQty('${m.code}')">
                 <strong>[${m.code}]</strong> ${m.name} (定価:${m.price.toLocaleString()}円)
             </div>
             <div style="display:flex; align-items:center; gap:6px;">
                 <button onclick="decrementTempQty('${m.code}'); event.stopPropagation();" style="background:#cbd5e1; color:#0f172a; border:none; width:26px; height:26px; border-radius:4px; font-weight:bold; cursor:pointer;">-</button>
-                <span style="font-weight:bold; font-size:0.95rem; min-width:24px; text-align:center; color:${qty > 0 ? '#16a34a' : '#64748b'};">${qty}</span>
+                <span onclick="openNumpad('数量を入力 (${m.name})', ${qty}, (val)=>{ setTempQty('${m.code}', val); }); event.stopPropagation();" style="font-weight:bold; font-size:1rem; min-width:32px; text-align:center; color:${qty > 0 ? '#16a34a' : '#64748b'}; background:#fff; border:1px solid #cbd5e1; border-radius:4px; padding:2px 4px; cursor:pointer;" title="タッチして直接入力">${qty}</span>
                 <button onclick="incrementTempQty('${m.code}'); event.stopPropagation();" style="background:#1e293b; color:white; border:none; width:26px; height:26px; border-radius:4px; font-weight:bold; cursor:pointer;">+</button>
             </div>
         `;
@@ -1079,6 +1083,17 @@ function decrementTempQty(code) {
     updateSelectedSummary();
 }
 
+function setTempQty(code, val) {
+    const num = Number(val);
+    if (num > 0) {
+        tempSelectedQtys[code] = num;
+    } else {
+        delete tempSelectedQtys[code];
+    }
+    renderMasterList(masterItems);
+    updateSelectedSummary();
+}
+
 function filterMasterItems() {
     const kw = document.getElementById('itemSearchInput').value.toLowerCase();
     const filtered = masterItems.filter(m => m.name.toLowerCase().includes(kw) || m.code.includes(kw) || String(m.price).includes(kw));
@@ -1095,7 +1110,7 @@ function updateSelectedSummary() {
     badge.innerText = totalItemsCount;
 
     if (codes.length === 0) {
-        summaryDiv.innerHTML = '選択されている商品はありません（リストの商品をタップして個数を増やしてください）';
+        summaryDiv.innerHTML = '選択されている商品はありません（リストの商品をタップして個数を増やすか、数字をタッチして直接入力できます）';
         return;
     }
 
@@ -1124,7 +1139,6 @@ function confirmSelectedItems() {
         const qtyToAdd = tempSelectedQtys[code];
         const masterObj = masterItems.find(m => m.code === code);
         if (masterObj && qtyToAdd > 0) {
-            // 既に同じコードが明細にあれば数量を加算、なければ新規追加
             const existing = targetList.find(i => i.code === code);
             if (existing) {
                 existing.qty += qtyToAdd;
@@ -1148,7 +1162,6 @@ function addNewMasterAndQuickSelect() {
     const newItem = { code, name, price };
     masterItems.push(newItem);
     
-    // 自動でテンポラリに1個追加して再描画
     tempSelectedQtys[code] = (tempSelectedQtys[code] || 0) + 1;
     renderMasterList(masterItems);
     updateSelectedSummary();
@@ -1162,21 +1175,36 @@ function openNumpad(title, currentVal, callback) {
     document.getElementById('numpadTitle').innerText = title;
     document.getElementById('numpadScreen').value = currentVal;
     activeInputCallback = callback;
+    isFirstKeyStroke = true;
     document.getElementById('numpadModal').style.display = 'block';
 }
+
 function npPress(char) {
     const screen = document.getElementById('numpadScreen');
-    screen.value = (screen.value === '0') ? char : screen.value + char;
+    if (isFirstKeyStroke) {
+        screen.value = char;
+        isFirstKeyStroke = false;
+    } else {
+        screen.value = (screen.value === '0') ? char : screen.value + char;
+    }
 }
-function npClear() { document.getElementById('numpadScreen').value = '0'; }
+
+function npClear() { 
+    document.getElementById('numpadScreen').value = '0'; 
+    isFirstKeyStroke = false;
+}
+
 function npBack() {
     const screen = document.getElementById('numpadScreen');
     screen.value = screen.value.length > 1 ? screen.value.slice(0, -1) : '0';
+    isFirstKeyStroke = false;
 }
+
 function npClose() {
     document.getElementById('numpadModal').style.display = 'none';
     activeInputCallback = null;
 }
+
 function npConfirm() {
     const val = Number(document.getElementById('numpadScreen').value);
     if (activeInputCallback) activeInputCallback(val);
@@ -1315,6 +1343,20 @@ function renderPreview() {
     const multiplier = getRateMultiplier();
     const memoVal = document.getElementById('memoInput').value;
     
+    // 発行元情報共通ブロック（担当者携帯優先、インボイス登録番号、新住所・連絡先、振込先案内）
+    const issuerHeaderHtml = `
+        <div style="font-size:0.75rem; margin-top:8px; line-height:1.4;">
+            <strong>株式会社ベルアビエ デコレ事業部 (サントテール)</strong><br>
+            〒963-4312 福島県田村市船引町船引字下扇田52<br>
+            <strong>担当: 大和地 豊 (TEL: 080-5562-4600)</strong><br>
+            TEL 0247-81-2215 / FAX 0247-81-2216<br>
+            インボイス登録番号: T63-80001-008040<br>
+            <strong>【振込先案内】</strong><br>
+            • 郵便振替: 02210-7-78715 株式会社ベルアビエ<br>
+            • 東邦銀行 船引支店 普通 547061 株式会社ベルアビエ
+        </div>
+    `;
+    
     if (currentTab === 'nohin') {
         let totalAmount = 0;
         let rowsHtml = '';
@@ -1346,10 +1388,7 @@ function renderPreview() {
             <div style="margin-top:10px; padding:6px; border:1px solid #000; font-size:0.75rem; min-height:40px; background:#fff;">
                 ${memoVal ? memoVal.replace(/\n/g, '<br>') : ''}
             </div>
-            <div style="font-size:0.75rem; margin-top:8px;">
-                株式会社ベルアビエ デコレ事業部 | 福島県田村市船引町船引字下扇田52<br>
-                TEL 0247-81-2215 / 振替: 02210-7-78715
-            </div>
+            ${issuerHeaderHtml}
         `;
     } else if (currentTab === 'henpin') {
         let totalAmount = 0;
@@ -1382,10 +1421,7 @@ function renderPreview() {
             <div style="margin-top:10px; padding:6px; border:1px solid #000; font-size:0.75rem; min-height:40px; background:#fff;">
                 ${memoVal ? memoVal.replace(/\n/g, '<br>') : ''}
             </div>
-            <div style="font-size:0.75rem; margin-top:8px;">
-                株式会社ベルアビエ デコレ事業部 (返品処理分)<br>
-                TEL 0247-81-2215
-            </div>
+            ${issuerHeaderHtml}
         `;
     } else {
         let summaryMap = {};
@@ -1439,6 +1475,7 @@ function renderPreview() {
                 委託納品数と返品伝票の差分（在庫ないぶん）から自動算出したご請求金額です。<br>
                 <strong>請求残高: ${totalBilling.toLocaleString()} 円</strong>
             </div>
+            ${issuerHeaderHtml}
         `;
     }
 }
